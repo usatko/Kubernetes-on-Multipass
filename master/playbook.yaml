@@ -3,5 +3,6 @@
   hosts: master
   become: true
   tasks:
-    - name: Configure nodes
+    - name: initialize master nodes
       include_tasks: init-cluster-tasks.yaml
+    - debug: msg="{{JOIN_COMMAND.stdout}}"

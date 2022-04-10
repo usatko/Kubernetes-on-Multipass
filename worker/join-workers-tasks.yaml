@@ -1,6 +1,6 @@
 ---
 - name: join cluster
-  shell: "{{ join_command_raw.stdout_lines[0] }} >> node_joined.txt"
+  shell: "{{ join_command }} >> node_joined.txt"
   args:
     chdir: $HOME
     creates: node_joined.txt

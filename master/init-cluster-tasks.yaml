@@ -11,28 +11,29 @@
     creates: cluster_initialized.txt
 
 - name: create .kube directory
+  become_user: ubuntu
   file:
     path: $HOME/.kube
     state: directory
     mode: 0755
+  register: kube_path
 
 - name: copy admin.conf to user's kube config
+  become: yes
   copy:
     src: /etc/kubernetes/admin.conf
-    dest: $HOME/.kube/config
+    dest: "{{kube_path.path}}/config"
     remote_src: yes
     owner: ubuntu
 
-- name: install Pod network
-  become: yes
+- name: install Pod network pt.1
   become_user: ubuntu
   shell: kubectl create -f https://projectcalico.docs.tigera.io/manifests/tigera-operator.yaml >> pod_network_setup.txt
   args:
     chdir: $HOME
     creates: pod_network_setup.txt
 
-- name: install Pod network
-  become: yes
+- name: install Pod network pt.2
   become_user: ubuntu
   shell: kubectl create -f https://projectcalico.docs.tigera.io/manifests/custom-resources.yaml >> pod_network_setup.txt
   args:
@@ -41,4 +42,4 @@
 
 - name: get join command
   shell: kubeadm token create --print-join-command
-  register: join_command_raw
+  register: JOIN_COMMAND

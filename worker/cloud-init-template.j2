@@ -2,9 +2,11 @@
 
 # create ssh passwordless user
 users:
-  - default
-  - name: k8s-admin
-    sudo:  ALL=(ALL) NOPASSWD:ALL
+  - name: ubuntu
+    groups: docker
+    home: /home/ubuntu
+    shell: /bin/bash
+    sudo: ALL=(ALL) NOPASSWD:ALL
     ssh-authorized-keys:
       - {{ public_key }}
 
@@ -13,7 +15,7 @@ apt:
   sources:
     kubernetes:
       source: "deb http://apt.kubernetes.io/ kubernetes-xenial main"
-      keyserver: pgp.mit.edu
+      keyserver: keyserver.ubuntu.com
       keyid: 59FE0256827269DC81578F928B57C5C2836F4BEB
 
 # install needed packages      
@@ -27,7 +29,7 @@ packages:
   - software-properties-common
   - docker.io
   - [kubeadm, 1.22.8-00]
-  - kubectl, 1.22.8-00]
+  - [kubectl, 1.22.8-00]
   - [kubelet, 1.22.8-00]
 
 # create the docker group

@@ -1,7 +1,13 @@
 ---
 - name: join workers
   hosts: worker
+  vars:
+    join_command: "{{ hostvars[groups['master'][0]]['JOIN_COMMAND']['stdout'] }}"
   become: true
   tasks:
     - name: Configure workers
       include_tasks: join-workers-tasks.yaml
+
+    - name: get master node name
+      debug:
+         msg={{ join_command }}

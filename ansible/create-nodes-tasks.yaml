@@ -17,8 +17,27 @@
     public_key: "{{ sshkey.public_key }}"
 
 - name: create nodes
-  shell: multipass launch {{ clusterConfig.spec }}  --cloud-init ../{{ clusterConfig.nodeType }}/cloud-init.yaml --name {{ clusterConfig.nodeType }}-node-{{ item }} -vvvv
+  shell: |
+    export NODENAME="{{ clusterConfig.nodeType }}-node-{{ item }}"
+    export SPEC="{{ clusterConfig.spec }}"
+    export CLOUD_INIT_PATH="../{{ clusterConfig.nodeType }}/cloud-init.yaml"
+    if [[ -z $(multipass ls --format json | jq -c '.list[] | select(.name == env.NODENAME)') ]]; then
+      multipass launch $SPEC --cloud-init $CLOUD_INIT_PATH --name $NODENAME -vvvv
+    else
+      echo "multipass vm $NODENAME already exists"
+      
+    fi 
+  register: cmd_output
   with_sequence: count="{{ clusterConfig.nodeCount }}"
+  loop_control:
+    pause: 10
+
+- debug: 
+    msg:
+      "{{ item.stdout }}"
+  with_items: "{{ cmd_output.results }}"
+  loop_control: 
+    label: "{{ item.item}}"
 
 - name: start nodes
   shell: multipass start --all
@@ -52,7 +71,7 @@
           {{ item.stdout.split(':')[0] }}:
             ansible_connection: ssh
             ansible_host: {{ item.stdout.split(':')[1] }}
-            ansible_user: k8s-admin
+            ansible_user: ubuntu
             ansible_ssh_common_args: "-o StrictHostKeyChecking=no -o ControlMaster=no -o ControlPath=none"
             ansible_ssh_private_key_file: {{ sshkey.filename }}
   with_items: "{{ vm_info.results }}"
