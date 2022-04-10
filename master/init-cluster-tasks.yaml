@@ -1,0 +1,44 @@
+---
+- name: copy kubeadm file
+  copy:
+    src: kubeadm-config.yaml
+    dest: $HOME/kubeadm-config.yaml
+
+- name: initialize the master node
+  shell: kubeadm init --config $HOME/kubeadm-config.yaml >> cluster_initialized.txt
+  args:
+    chdir: $HOME
+    creates: cluster_initialized.txt
+
+- name: create .kube directory
+  file:
+    path: $HOME/.kube
+    state: directory
+    mode: 0755
+
+- name: copy admin.conf to user's kube config
+  copy:
+    src: /etc/kubernetes/admin.conf
+    dest: $HOME/.kube/config
+    remote_src: yes
+    owner: ubuntu
+
+- name: install Pod network
+  become: yes
+  become_user: ubuntu
+  shell: kubectl create -f https://projectcalico.docs.tigera.io/manifests/tigera-operator.yaml >> pod_network_setup.txt
+  args:
+    chdir: $HOME
+    creates: pod_network_setup.txt
+
+- name: install Pod network
+  become: yes
+  become_user: ubuntu
+  shell: kubectl create -f https://projectcalico.docs.tigera.io/manifests/custom-resources.yaml >> pod_network_setup.txt
+  args:
+    chdir: $HOME
+    creates: pod_network_setup.txt
+
+- name: get join command
+  shell: kubeadm token create --print-join-command
+  register: join_command_raw

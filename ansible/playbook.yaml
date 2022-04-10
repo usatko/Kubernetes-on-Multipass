@@ -1,0 +1,22 @@
+---
+- name: create Multipass VMs for a K8s cluster
+  hosts: localhost
+  tasks:
+  - name: read k8s cluster node VM configuration from file
+    include_vars:
+      file: 1m3w.yaml
+      name: config
+
+  - name: configure nodes
+    include_tasks: create-nodes-tasks.yaml
+    vars:
+      clusterConfig: "{{ conf }}"
+    loop: "{{ config.configurations }}"
+    loop_control:
+      loop_var: conf
+
+  - name: refreshing inventory
+    meta: refresh_inventory
+
+- import_playbook: ../master/playbook.yaml
+- import_playbook: ../worker/playbook.yaml

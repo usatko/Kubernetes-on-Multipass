@@ -1,0 +1,10 @@
+master:
+  hosts:
+#master-node-1#
+    master-node-1:
+      ansible_connection: ssh
+      ansible_host: 192.168.64.84
+      ansible_user: k8s-admin
+      ansible_ssh_common_args: "-o StrictHostKeyChecking=no -o ControlMaster=no -o ControlPath=none"
+      ansible_ssh_private_key_file: /tmp/id_ssh_rsa
+#master-node-1#

@@ -1,0 +1,7 @@
+configurations:
+  - nodeType: master
+    nodeCount: 1
+    spec: '-c 2 -m 4G -d 20G'
+  - nodeType: worker
+    nodeCount: 3
+    spec: '-c 2 -m 4G -d 10G'

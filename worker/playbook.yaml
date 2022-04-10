@@ -1,0 +1,7 @@
+---
+- name: join workers
+  hosts: worker
+  become: true
+  tasks:
+    - name: Configure workers
+      include_tasks: join-workers-tasks.yaml

@@ -1,0 +1,80 @@
+#cloud-init
+
+# create ssh passwordless user
+users:
+  - default
+  - name: k8s-admin
+    sudo:  ALL=(ALL) NOPASSWD:ALL
+    ssh-authorized-keys:
+      - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQDMa4F7lhb2wgdVusoZ0m29aJ70FoPasN3W6kdlytXxlSS9fn7oRuK3xZJd5xKIJhJuaUVFVctD6pQa0EJCln9Cxv0yp7fMahaBYv3SCbPQmJdfFuFVdsuooUO6e07RMXs29Uh8lCNtouF+07qCANyu4Wj1snrRPkkqf/bb9WanEQL7bRxNnguwLC5HIvIhq5Vkln1VW8RVRYTvR1v5ddGBpJLBMZRdBftKMP2sIOryZ0a1I7nCbwxrmBKi1N7m7lRrep9g6Nj8h28vV5m8hajKBj1afpCzx4UVHgYLuT/e+pJGONHy5FW2FeOfSPQuepchIX19Sy7cTsXlEx5xvmA+1S2YlulsfkBnULO0XiUh8kPUEadFX4ZEirwOe00RpRHsWdzd1Xl0FRDodgm6jJvEC1AzRnqTrztNJ9QUwwbwZCECxVryEaz+96bXEi5VcME1A7YfT9Ws8NY0oZbWPtAMD7kX4b4R3Wl/dog6nRIDdkw7Lzuz7/W6M1Ehl69SYm478GgoAm5uq8p1Sn2QUI4yENFlOtkXTvDuzhlef3ZjlcKPrPATDAqjnpOE/dhDsQLPKi47XL6I7Irppu2raAO9YIwqhrQ1A9JU9/Q/qDJ/KLFmdgbSYO0UtgQypPPPj5eCouquOXn7zh4zUQv4o37d0HW/OgEbEkaWwtz9X4SxrQ==
+
+# add apt source for kubernetes
+apt:
+  sources:
+    kubernetes:
+      source: "deb http://apt.kubernetes.io/ kubernetes-xenial main"
+      keyserver: pgp.mit.edu
+      keyid: 59FE0256827269DC81578F928B57C5C2836F4BEB
+
+# install needed packages      
+package_update: true
+package_upgrade: true
+packages:
+  - apt-transport-https
+  - ca-certificates
+  - curl
+  - gnupg-agent 
+  - software-properties-common
+  - docker.io
+  - [kubeadm, 1.22.8-00]
+  - kubectl, 1.22.8-00]
+  - [kubelet, 1.22.8-00]
+
+# create the docker group
+groups:
+  - docker
+
+# Add default auto created user to docker group
+system_info:
+  default_user:
+    groups: [docker]
+
+# create files
+write_files:
+  - path: /etc/systemd/resolved.conf
+    append: true
+    content: |
+      MulticastDNS=yes
+
+  - path: /etc/systemd/system/mdns@.service
+    content: |
+      [Service]
+      Type=oneshot
+      ExecStart=/usr/bin/systemd-resolve --set-mdns=yes --interface=%i
+      After=sys-subsystem-net-devices-%i.device
+
+      [Install]
+      WantedBy=sys-subsystem-net-devices-%i.device
+
+  - path: /etc/docker/daemon.json
+    content: |
+      {
+        "exec-opts": ["native.cgroupdriver=systemd"],
+        "log-driver": "json-file",
+        "log-opts": {
+          "max-size": "100m"
+        },
+        "storage-driver": "overlay2"
+      }
+
+  - path: /etc/sysconfig/kubelet 
+    content: |
+      KUBELET_EXTRA_ARGS=--cgroup-driver=systemd
+
+runcmd:
+  - sudo swapoff -a
+  - systemctl restart systemd-resolved.service
+  - systemctl start mdns@enp0s2.service
+  - systemctl enable mdns@enp0s2.service
+
+package_reboot_if_required: true
