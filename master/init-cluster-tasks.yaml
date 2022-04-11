@@ -18,11 +18,10 @@
 - name: do debug kadm
   debug:
     msg: 
-      - "{{ playbook_dir }}"
+      - "{{ kadm.dest }}"
 
 - name: initialize the master node
-  become_user: ubuntu
-  shell: kubeadm init --config $HOME/kubeadm-config.yaml >> cluster_initialized.txt
+  shell: kubeadm init --config "{{ kadm.dest }}" >> cluster_initialized.txt
   args:
     chdir: $HOME
     creates: cluster_initialized.txt
@@ -36,7 +35,6 @@
   register: kube_path
 
 - name: copy admin.conf to user's kube config
-  become: yes
   copy:
     src: /etc/kubernetes/admin.conf
     dest: "{{kube_path.path}}/config"
