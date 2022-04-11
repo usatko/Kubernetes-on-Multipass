@@ -5,7 +5,7 @@
     type: rsa
     size: 4096
     state: present
-    force: no
+    force: False
   register: sshkey
 
 - name: add public key to cloud-init file
@@ -32,9 +32,10 @@
   loop_control:
     pause: 10
 
-- debug: 
+- name: do debug
+  debug:
     msg:
-      "{{ item.stdout }}"
+      - "{{ item.stdout }}"
   with_items: "{{ cmd_output.results }}"
   loop_control: 
     label: "{{ item.item}}"

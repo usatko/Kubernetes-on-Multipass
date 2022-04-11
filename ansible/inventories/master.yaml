@@ -3,7 +3,7 @@ master:
 #master-node-1#
     master-node-1:
       ansible_connection: ssh
-      ansible_host: 192.168.64.115
+      ansible_host: 192.168.64.130
       ansible_user: ubuntu
       ansible_ssh_common_args: "-o StrictHostKeyChecking=no -o ControlMaster=no -o ControlPath=none"
       ansible_ssh_private_key_file: /tmp/id_ssh_rsa
