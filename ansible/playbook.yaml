@@ -4,7 +4,7 @@
   tasks:
   - name: read k8s cluster node VM configuration from file
     include_vars:
-      file: 3m3w.yaml
+      file: "{{ configFile }}"
       name: config
 
   - name: configure nodes
