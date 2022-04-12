@@ -1,14 +1,14 @@
 # kubeadm-config.yaml
 apiVersion: kubeadm.k8s.io/v1beta3
 kind: InitConfiguration
-certificateKey: cb54d2327b4c065ffdc169544cab801313588640d928b2df97081817db192497
+certificateKey: {{ CertificateKey }}
 ---
 apiVersion: kubeadm.k8s.io/v1beta3
 kind: ClusterConfiguration
 kubernetesVersion: v1.22.8
 networking:
   podSubnet: 10.244.0.0/16
-controlPlaneEndpoint: "192.168.64.147:6443"
+controlPlaneEndpoint: "{{ CtrlPlaneIP }}:6443"
 ---
 apiVersion: kubelet.config.k8s.io/v1beta1
 kind: KubeletConfiguration
