@@ -86,3 +86,10 @@
     remote_src: yes
     owner: ubuntu
   when: "'1' not in inventory_hostname"
+
+- name: copy admin.conf to local
+  fetch:
+    src: /etc/kubernetes/admin.conf
+    dest: "~/.KUBE/config"
+    flat: yes
+  when: "'1' in inventory_hostname"
