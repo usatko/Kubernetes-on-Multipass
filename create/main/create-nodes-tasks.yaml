@@ -81,6 +81,6 @@
             ansible_connection: ssh
             ansible_host: {{ item.stdout.split(':')[1] }}
             ansible_user: ubuntu
-            ansible_ssh_common_args: "-o StrictHostKeyChecking=no -o Controlcontrol=no -o ControlPath=none"
+            ansible_ssh_common_args: "-o StrictHostKeyChecking=no -o ControlMaster=no -o ControlPath=none"
             ansible_ssh_private_key_file: {{ sshkey.filename }}
   with_items: "{{ vm_info.results }}"

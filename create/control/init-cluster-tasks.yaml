@@ -18,7 +18,6 @@
   delegate_to: localhost
   vars:
     certificate_key: "{{ CERT_KEY.stdout }}"
-    lb_ip: "{{ loadbalancer_ip }}"
   when: "'1' in inventory_hostname"
 
 - name: copy kubeadm file
@@ -76,7 +75,7 @@
 
 - name: install Pod network
   become: false
-  shell: kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/control/Documentation/kube-flannel.yml
+  shell: kubectl apply -f https://raw.githubusercontent.com/flannel-io/flannel/master/Documentation/kube-flannel.yml
   when: "'1' in inventory_hostname"
 
 - name: join other control plane nodes

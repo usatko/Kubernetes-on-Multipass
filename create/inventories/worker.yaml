@@ -5,7 +5,7 @@ worker:
       ansible_connection: ssh
       ansible_host: 192.168.64.221
       ansible_user: ubuntu
-      ansible_ssh_common_args: "-o StrictHostKeyChecking=no -o Controlcontrol=no -o ControlPath=none"
+      ansible_ssh_common_args: "-o StrictHostKeyChecking=no -o ControlMaster=no -o ControlPath=none"
       ansible_ssh_private_key_file: /tmp/worker/id_ssh_rsa
 #worker-node-1#
 #worker-node-2#
@@ -13,7 +13,7 @@ worker:
       ansible_connection: ssh
       ansible_host: 192.168.64.222
       ansible_user: ubuntu
-      ansible_ssh_common_args: "-o StrictHostKeyChecking=no -o Controlcontrol=no -o ControlPath=none"
+      ansible_ssh_common_args: "-o StrictHostKeyChecking=no -o ControlMaster=no -o ControlPath=none"
       ansible_ssh_private_key_file: /tmp/worker/id_ssh_rsa
 #worker-node-2#
 #worker-node-3#
@@ -21,6 +21,6 @@ worker:
       ansible_connection: ssh
       ansible_host: 192.168.64.223
       ansible_user: ubuntu
-      ansible_ssh_common_args: "-o StrictHostKeyChecking=no -o Controlcontrol=no -o ControlPath=none"
+      ansible_ssh_common_args: "-o StrictHostKeyChecking=no -o ControlMaster=no -o ControlPath=none"
       ansible_ssh_private_key_file: /tmp/worker/id_ssh_rsa
 #worker-node-3#

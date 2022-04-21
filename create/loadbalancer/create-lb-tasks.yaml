@@ -1,44 +1,20 @@
 ---
-# - name: haproxy frontend config
-#   blockinfile:
-#     dest: "./haproxy.cfg"
-#     marker: "# frontend config #"
-#     block: |
-#       frontend kubernetes
-#         bind {{ hostvars[groups['loadbalancer'][0]].ansible_host }}:6443
-#         option tcplog
-#         mode tcp
-#         default_backend kubernetes-control-nodes
+- name: Check that the somefile.conf exists
+  stat:
+    path: ./haproxy.cfg
+  register: cfg_file
 
-#       frontend http_front
-#           mode http
-#           bind {{ hostvars[groups['loadbalancer'][0]].ansible_host }}:80
-#           default_backend http_back
-
-#       frontend https_front
-#           mode http
-#           bind {{ hostvars[groups['loadbalancer'][0]].ansible_host }}:443
-#           default_backend https_back
-
-
-# - name: haproxy backend config
-#   blockinfile:
-#     dest: "./haproxy.cfg"
-#     marker: "# backend config #"
-#     block: |
-#       {
-#       { % for item in hosts %}
-#       {{ item }}
-#       { % endfor %}
-#       }
-
-
-- name: render
+- name: create haproxy config 
   template:
-    src: "./haproxy-cfg-template.j2"
-    dest: "../haproxy.cfg"
-  delegate_to: localhost
-  vars:
-    lb_ip: "{{ hostvars[groups['loadbalancer'][0]].ansible_host }}"
-    hosts: "{{ hosts }}"
-    
+    src: ./haproxy-cfg-template.j2
+    dest: ./haproxy.cfg
+  when: not cfg_file.stat.exists
+
+- name: append haproxy config
+  become: true
+  shell: cat ./haproxy.cfg >> /etc/haproxy/haproxy.cfg
+  when: not cfg_file.stat.exists
+
+- name: restart haproxy svc
+  become: true
+  shell: systemctl restart haproxy

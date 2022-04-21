@@ -1,35 +1,35 @@
 frontend kubernetes
-    bind {{ lb_ip }}:6443
+    bind {{ hostvars[groups['loadbalancer'][0]].ansible_host }}:6443
     option tcplog
     mode tcp
     default_backend kubernetes-control-nodes
 
 frontend http_front
     mode http
-    bind {{ lb_ip }}:80
+    bind {{ hostvars[groups['loadbalancer'][0]].ansible_host }}:80
     default_backend http_back
 
 frontend https_front
     mode http
-    bind {{ lb_ip }}:443
+    bind {{ hostvars[groups['loadbalancer'][0]].ansible_host }}:443
     default_backend https_back
 
 backend kubernetes-control-nodes
     mode tcp
     balance roundrobin
     option tcp-check
-    { % for host in hosts %}
-    server {{ hostvars[host]['ansible_host'] }}:6443 check fall 3 rise 2
-    { % endfor %}
+{% for host in groups['control'] %}
+    server {{ host }} {{ hostvars[host]['ansible_host'] }}:6443 check fall 3 rise 2
+{% endfor %}
 
 backend http_back
     mode http
-    { % for host in groups['control'] %}
-    server {{ hostvars[host]['inventory_name'] }} {{ hostvars[host]['ansible_host'] }}:32059 check fall 3 rise 2
-    { % endfor %}
+{% for host in groups['control'] %}
+    server {{ host }} {{ hostvars[host]['ansible_host'] }}:32059 check fall 3 rise 2
+{% endfor %}
 
 backend https_back
     mode http
-    { % for host in groups['control'] %}
-    server {{ hostvars[host]['inventory_name'] }} {{ hostvars[host]['ansible_host'] }}:32423 check fall 3 rise 2
-    { % endfor %}
+{% for host in groups['control'] %}
+    server {{ host }} {{ hostvars[host]['ansible_host'] }}:32423 check fall 3 rise 2
+{% endfor %}

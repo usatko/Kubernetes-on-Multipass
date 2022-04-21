@@ -19,5 +19,5 @@
     meta: refresh_inventory
 
 - import_playbook: ../loadbalancer/playbook.yaml
-# - import_playbook: ../control/playbook.yaml
-# - import_playbook: ../worker/playbook.yaml
+- import_playbook: ../control/playbook.yaml
+- import_playbook: ../worker/playbook.yaml
