@@ -1,0 +1,119 @@
+- name: apt-get update
+  apt:
+    update_cache: yes
+
+- name: unhold kubeadm
+  shell: apt-mark unhold kubeadm
+
+- name: install kubeadm
+  apt:
+    name: "kubeadm={{ upgrade_version }}-00"
+
+- name: hold kubeadm
+  shell: apt-mark hold kubeadm
+
+- name: kubeadm version
+  shell: kubeadm version
+  register: kubeadm_version
+
+- name: show kubeadm version
+  debug:
+    msg: "{{ kubeadm_version.stdout }}"
+
+- name: kubeadm upgrade plan
+  shell: kubeadm upgrade plan
+  register: kubeadm_upgrade_plan
+
+- name: show kubeadm upgrade plan
+  debug:
+    msg: "{{ kubeadm_upgrade_plan.stdout }}"
+
+- name: kubeadm upgrade first control plane node
+  shell: "kubeadm upgrade apply v{{ upgrade_version }} -y"
+  register: kubeadm_upgrade_first
+  when: "'1' in inventory_hostname"
+
+- name: show kubeadm upgrade first control plane node
+  debug:
+    msg: "{{ kubeadm_upgrade_first.stdout }}"
+  when: "'1' in inventory_hostname"
+
+- name: kubeadm upgrade other control plane nodes
+  shell: "kubeadm upgrade node"
+  register: kubeadm_upgrade_other
+  when: "'1' not in inventory_hostname"
+
+- name: show kubeadm upgrade other control plane nodes
+  debug:
+    msg: "{{ kubeadm_upgrade_other.stdout }}"
+  when: "'1' not in inventory_hostname"
+
+- name: create .kube directory
+  become_user: ubuntu
+  file:
+    path: $HOME/.kube
+    state: directory
+    mode: 0755
+  register: kube_path
+
+- name: copy admin.conf to .kube dir
+  copy:
+    src: /etc/kubernetes/admin.conf
+    dest: "{{kube_path.path}}/config"
+    remote_src: yes
+    owner: ubuntu
+
+- name: copy admin.conf to local
+  fetch:
+    src: /etc/kubernetes/admin.conf
+    dest: "~/.kube/config"
+    flat: yes
+
+- name: drain control plane nodes
+  become: false
+  shell: "kubectl drain {{ inventory_hostname }} --ignore-daemonsets"
+
+- name: unhold kubelet & kubectl
+  shell: apt-mark unhold kubelet kubectl
+
+- name: install kubelet & kubectl
+  apt:
+    name: 
+      - "kubelet={{ upgrade_version }}-00"
+      - "kubectl={{ upgrade_version }}-00"
+    update_cache: yes
+
+- name: hold kubelet & kubectl
+  shell: apt-mark hold kubelet kubectl
+
+- name: kubelet version
+  shell: kubelet --version
+  register: kubelet_version
+
+- name: show kubelet version
+  debug:
+    msg: "{{ kubelet_version.stdout }}"
+
+- name: kubectl version
+  become: false
+  shell: kubectl version
+  register: kubectl_version
+
+- name: show kubectl version
+  debug:
+    msg: "{{ kubectl_version.stdout }}"
+
+- name: restart kubelet
+  shell: systemctl daemon-reload && systemctl restart kubelet
+
+- name: uncordon control plane nodes
+  become: false
+  shell: "kubectl uncordon {{ inventory_hostname }}"
+
+- name: Remove useless packages from the cache
+  apt:
+    autoclean: yes
+
+- name: Remove dependencies that are no longer required
+  apt:
+    autoremove: yes

@@ -1,0 +1,4 @@
+---
+- name: Update kubernetes version
+  hosts: localhost
+  
