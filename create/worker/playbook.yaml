@@ -1,8 +1,12 @@
 ---
-- name: join workers
-  hosts: worker
-  vars:
-    join_command: "{{ hostvars[groups['master'][0]]['JOIN_COMMAND']['stdout'] }}"
+- hosts: control
+  become: true
+  tasks:
+    - name: get join command for workers
+      shell: kubeadm token create --print-join-command
+      register: JOIN_COMMAND
+      
+- hosts: worker
   become: true
   tasks:
     - name: Configure workers

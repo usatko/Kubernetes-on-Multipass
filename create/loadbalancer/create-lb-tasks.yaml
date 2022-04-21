@@ -1,0 +1,44 @@
+---
+# - name: haproxy frontend config
+#   blockinfile:
+#     dest: "./haproxy.cfg"
+#     marker: "# frontend config #"
+#     block: |
+#       frontend kubernetes
+#         bind {{ hostvars[groups['loadbalancer'][0]].ansible_host }}:6443
+#         option tcplog
+#         mode tcp
+#         default_backend kubernetes-control-nodes
+
+#       frontend http_front
+#           mode http
+#           bind {{ hostvars[groups['loadbalancer'][0]].ansible_host }}:80
+#           default_backend http_back
+
+#       frontend https_front
+#           mode http
+#           bind {{ hostvars[groups['loadbalancer'][0]].ansible_host }}:443
+#           default_backend https_back
+
+
+# - name: haproxy backend config
+#   blockinfile:
+#     dest: "./haproxy.cfg"
+#     marker: "# backend config #"
+#     block: |
+#       {
+#       { % for item in hosts %}
+#       {{ item }}
+#       { % endfor %}
+#       }
+
+
+- name: render
+  template:
+    src: "./haproxy-cfg-template.j2"
+    dest: "../haproxy.cfg"
+  delegate_to: localhost
+  vars:
+    lb_ip: "{{ hostvars[groups['loadbalancer'][0]].ansible_host }}"
+    hosts: "{{ hosts }}"
+    

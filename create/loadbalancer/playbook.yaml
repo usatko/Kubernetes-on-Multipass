@@ -1,0 +1,8 @@
+--- 
+- name: configure loadbalancer for control plane nodes
+  hosts: localhost
+  tasks:
+    - name: configure lb
+      include_tasks: create-lb-tasks.yaml
+      vars:
+        hosts: "{{ groups['control'] }}"

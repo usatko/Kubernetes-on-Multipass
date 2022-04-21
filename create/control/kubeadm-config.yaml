@@ -1,7 +1,7 @@
 # kubeadm-config.yaml
 apiVersion: kubeadm.k8s.io/v1beta3
 kind: InitConfiguration
-certificateKey: {{ CertificateKey }}
+certificateKey: 330395e53116de0885983e293b5fb621c9d912f8621f82db32d43595496bb5f5
 ---
 apiVersion: kubeadm.k8s.io/v1beta3
 kind: ClusterConfiguration

@@ -17,8 +17,8 @@
     dest: "{{ playbook_dir }}/kubeadm-config.yaml"
   delegate_to: localhost
   vars:
-    CertificateKey: "{{ CERT_KEY.stdout }}"
-    CtrlPlaneIP: "{{ ansible_host }}"
+    certificate_key: "{{ CERT_KEY.stdout }}"
+    lb_ip: "{{ loadbalancer_ip }}"
   when: "'1' in inventory_hostname"
 
 - name: copy kubeadm file
@@ -29,7 +29,7 @@
   register: kadm_file
   when: "'1' in inventory_hostname"
 
-- name: initialize the first master node
+- name: initialize the first control node
   shell: kubeadm init --config {{kadm_file.dest}} --upload-certs
   register: kubeadm_init
   when: "'1' in inventory_hostname"
@@ -64,22 +64,19 @@
 
 - name: set facts join command & cert
   set_fact:
-    join_command: "{{ hostvars[groups['master'][0]]['JOIN_COMMAND']['stdout'] }}"
-    cert_key : "{{ hostvars[groups['master'][0]]['CERT_KEY']['stdout'] }}"
+    join_command: "{{ hostvars[groups['control'][0]]['JOIN_COMMAND']['stdout'] }}"
+    cert_key : "{{ hostvars[groups['control'][0]]['CERT_KEY']['stdout'] }}"
   when: "'1' not in inventory_hostname"
 
-- name: do debug join command
+- name: debug join command for control plane
   debug:
     msg: 
       - "{{ join_command }} --control-plane --certificate-key {{ cert_key }}"
   when: "'1' not in inventory_hostname"
 
 - name: install Pod network
-  become_user: ubuntu
-  shell: kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/master/Documentation/kube-flannel.yml >> pod_network_setup.txt
-  args:
-    chdir: $HOME
-    creates: pod_network_setup.txt
+  become: false
+  shell: kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/control/Documentation/kube-flannel.yml
   when: "'1' in inventory_hostname"
 
 - name: join other control plane nodes

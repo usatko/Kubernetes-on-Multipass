@@ -1,0 +1,44 @@
+#cloud-init
+
+# create ssh passwordless user
+users:
+  - name: ubuntu
+    home: /home/ubuntu
+    shell: /bin/bash
+    sudo: ALL=(ALL) NOPASSWD:ALL
+    ssh-authorized-keys:
+      - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQC6VqPbSsGk/5q0SxCTkDup5kVyCC1QHQZCy6kgKUcp8nVUAq5+PSFUe4Niv4cY2pm89GcGFRLC5Y4djgId3m9p9Um1djMrSkbto7T938HkqfDxRoB27BG8Fieln6T+mj5yHh506DRCBCkwmp28h+u7ArjYjS3Z9N2buVdUwBapxdYbWYxO8+bB8TDmC6UXgiiS+l83OMQ3kXijnqxeMV2vWzztBoDywXVNE/OkA7u5go9bMUldOhkMFJSyakwATEmWvP88V29hrKa+anndZDApTaXIwhf71cLo49Cn9Qqdb6KXeFxA3R/lJXXtij7mWQp+VkYYuLgGIEyNccI2DVHHMzUk5biEi1r2FfqZCOQsuhvv8st69PoE38NyUMi8up8/es53zK58hMfvMhlE5Y6KOLvSXI//44haDLSov5FcIbjk0QM+LOuI8YmbX55psKMVoTsPpns+SdrP2SL6F/p5DVGVG65Xcg1UnVcBVFr024XFDMzs07NUbJmSLTrKNmfMS6Cr9VJBlsrcptFQi0CU/IHL6SDFVFc7HSPk8WVxJUKgJHey5pcP81MeWeYQjbriiIBvdo26+ybUuHJK4RrvuttGY/2rUeNBF7gFxuqV5hDUtaventg2v7dcqIFKaL2YlbQmGng80VW1QT4u5vAP5KlAzbV5LSCL8ImR5VE5ZQ==
+
+# install needed packages      
+package_update: true
+package_upgrade: true
+packages:
+  - apt-transport-https
+  - ca-certificates
+  - curl
+  - haproxy
+
+# create files
+write_files:
+  - path: /etc/systemd/resolved.conf
+    append: true
+    content: |
+      MulticastDNS=yes
+
+  - path: /etc/systemd/system/mdns@.service
+    content: |
+      [Service]
+      Type=oneshot
+      ExecStart=/usr/bin/systemd-resolve --set-mdns=yes --interface=%i
+      After=sys-subsystem-net-devices-%i.device
+
+      [Install]
+      WantedBy=sys-subsystem-net-devices-%i.device
+
+runcmd:
+  - sudo swapoff -a
+  - systemctl restart systemd-resolved.service
+  - systemctl start mdns@enp0s2.service
+  - systemctl enable mdns@enp0s2.service
+
+package_reboot_if_required: true

@@ -1,6 +1,6 @@
-# cmd for creating master node:
+# cmd for creating control node:
 ```
-multipass launch -c 2 -m 4G -d 20G --cloud-init master/cloud-config.yaml -n master
+multipass launch -c 2 -m 4G -d 20G --cloud-init control/cloud-config.yaml -n control
 ```
 
 # cmd for creating worker nodes:

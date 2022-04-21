@@ -1,7 +1,14 @@
 ---
+- name: create .kube directory
+  become: false
+  file:
+    path: "/tmp/{{ clusterConfig.vmType }}"
+    state: directory
+  register: ssh_key_path
+
 - name: generate SHH key
   openssh_keypair:
-    path: /tmp/id_ssh_rsa
+    path: "{{ ssh_key_path.path }}/id_ssh_rsa"
     type: rsa
     size: 4096
     state: present
@@ -10,17 +17,17 @@
 
 - name: add public key to cloud-init file
   template:
-    src: "../{{ clusterConfig.nodeType }}/cloud-init-template.j2"
-    dest: "../{{ clusterConfig.nodeType }}/cloud-init.yaml"
+    src: "../{{ clusterConfig.vmType }}/cloud-init-template.j2"
+    dest: "../{{ clusterConfig.vmType }}/cloud-init.yaml"
   delegate_to: localhost
   vars:
     public_key: "{{ sshkey.public_key }}"
 
 - name: create nodes
   shell: |
-    export NODENAME="{{ clusterConfig.nodeType }}-node-{{ item }}"
+    export NODENAME="{{ clusterConfig.vmType }}-node-{{ item }}"
     export SPEC="{{ clusterConfig.spec }}"
-    export CLOUD_INIT_PATH="../{{ clusterConfig.nodeType }}/cloud-init.yaml"
+    export CLOUD_INIT_PATH="../{{ clusterConfig.vmType }}/cloud-init.yaml"
     if [[ -z $(multipass ls --format json | jq -c '.list[] | select(.name == env.NODENAME)') ]]; then
       multipass launch $SPEC --cloud-init $CLOUD_INIT_PATH --name $NODENAME -vvvv
     else
@@ -41,10 +48,11 @@
     label: "{{ item.item}}"
 
 - name: start nodes
-  shell: multipass start --all
+  shell: multipass start {{ clusterConfig.vmType }}-node-{{ item }}
+  with_sequence: count="{{ clusterConfig.nodeCount }}"
 
 - name: wait for node restart
-  shell: multipass info {{ clusterConfig.nodeType }}-node-{{ item }} --format json | jq -r '.info | .[keys[0]].state'
+  shell: multipass info {{ clusterConfig.vmType }}-node-{{ item }} --format json | jq -r '.info | .[keys[0]].state'
   register: vm_status
   until: vm_status.stdout == 'Running'
   retries: 10
@@ -52,27 +60,27 @@
   with_sequence: count="{{ clusterConfig.nodeCount }}"
 
 - name: map node name to node IP address
-  shell: multipass info {{ clusterConfig.nodeType }}-node-{{ item }} --format json | jq -r '.info | "\(keys[0]):\(.[keys[0]].ipv4[0])"'
+  shell: multipass info {{ clusterConfig.vmType }}-node-{{ item }} --format json | jq -r '.info | "\(keys[0]):\(.[keys[0]].ipv4[0])"'
   register: vm_info
   with_sequence: count="{{ clusterConfig.nodeCount }}"
 
 - name: create inventory file                                                                                
   copy:                                                                                              
     content: |
-      {{ clusterConfig.nodeType }}:
+      {{ clusterConfig.vmType }}:
         hosts:
-    dest: "../inventories/{{ clusterConfig.nodeType }}.yaml"
+    dest: "../inventories/{{ clusterConfig.vmType }}.yaml"
   delegate_to: localhost 
 
 - name: add node details to inventory file
   blockinfile:
-    dest: "../inventories/{{ clusterConfig.nodeType }}.yaml"
+    dest: "../inventories/{{ clusterConfig.vmType }}.yaml"
     marker: "#{{ item.stdout.split(':')[0] }}#"
     block: |2
           {{ item.stdout.split(':')[0] }}:
             ansible_connection: ssh
             ansible_host: {{ item.stdout.split(':')[1] }}
             ansible_user: ubuntu
-            ansible_ssh_common_args: "-o StrictHostKeyChecking=no -o ControlMaster=no -o ControlPath=none"
+            ansible_ssh_common_args: "-o StrictHostKeyChecking=no -o Controlcontrol=no -o ControlPath=none"
             ansible_ssh_private_key_file: {{ sshkey.filename }}
   with_items: "{{ vm_info.results }}"

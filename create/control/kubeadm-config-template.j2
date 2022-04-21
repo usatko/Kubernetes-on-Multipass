@@ -1,7 +1,7 @@
 # kubeadm-config.yaml
 apiVersion: kubeadm.k8s.io/v1beta3
 kind: InitConfiguration
-certificateKey: dc66a33b5ebc01a9b36ed908f5ca9dcb4f3e9b560d4ccf7d248f18cfb7f9aea6
+certificateKey: {{ certificate_key }}
 ---
 apiVersion: kubeadm.k8s.io/v1beta3
 kind: ClusterConfiguration
@@ -11,7 +11,7 @@ networking:
 apiServer:
   certSANs:
   - "192.168.64.210"
-controlPlaneEndpoint: "192.168.64.210:6443"
+controlPlaneEndpoint: "{{ lb_ip }}:6443"
 ---
 apiVersion: kubelet.config.k8s.io/v1beta1
 kind: KubeletConfiguration
