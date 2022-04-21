@@ -1,0 +1,4 @@
+configurations:
+  - nodeType: master
+    nodeCount: 3
+    spec: '-c 2 -m 4G -d 20G'

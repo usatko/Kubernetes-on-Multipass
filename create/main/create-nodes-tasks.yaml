@@ -61,12 +61,12 @@
     content: |
       {{ clusterConfig.nodeType }}:
         hosts:
-    dest: "./inventories/{{ clusterConfig.nodeType }}.yaml"
+    dest: "../inventories/{{ clusterConfig.nodeType }}.yaml"
   delegate_to: localhost 
 
 - name: add node details to inventory file
   blockinfile:
-    dest: "./inventories/{{ clusterConfig.nodeType }}.yaml"
+    dest: "../inventories/{{ clusterConfig.nodeType }}.yaml"
     marker: "#{{ item.stdout.split(':')[0] }}#"
     block: |2
           {{ item.stdout.split(':')[0] }}:
