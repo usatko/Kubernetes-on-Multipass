@@ -1,0 +1,80 @@
+- name: apt-get update
+  apt:
+    update_cache: yes
+
+- name: unhold kubeadm
+  shell: apt-mark unhold kubeadm
+
+- name: install kubeadm
+  apt:
+    name: "kubeadm={{ upgrade_version }}-00"
+
+- name: hold kubeadm
+  shell: apt-mark hold kubeadm
+
+- name: kubeadm version
+  shell: kubeadm version
+  register: kubeadm_version
+
+- name: show kubeadm version
+  debug:
+    msg: "{{ kubeadm_version.stdout }}"
+
+- name: kubeadm upgrade worker nodes
+  shell: "kubeadm upgrade node"
+  register: kubeadm_upgrade
+
+- name: show kubeadm upgrade worker nodes
+  debug:
+    msg: "{{ kubeadm_upgrade.stdout }}"
+
+- name: drain control plane nodes
+  become: false
+  delegate_to: localhost
+  shell: "kubectl drain {{ inventory_hostname }} --ignore-daemonsets"
+
+- name: unhold kubelet & kubectl
+  shell: apt-mark unhold kubelet kubectl
+
+- name: install kubelet & kubectl
+  apt:
+    name: 
+      - "kubelet={{ upgrade_version }}-00"
+      - "kubectl={{ upgrade_version }}-00"
+    update_cache: yes
+
+- name: hold kubelet & kubectl
+  shell: apt-mark hold kubelet kubectl
+
+- name: kubelet version
+  shell: kubelet --version
+  register: kubelet_version
+
+- name: show kubelet version
+  debug:
+    msg: "{{ kubelet_version.stdout }}"
+
+- name: kubectl version
+  become: false
+  shell: kubectl version --client
+  register: kubectl_version
+
+- name: show kubectl version
+  debug:
+    msg: "{{ kubectl_version.stdout }}"
+
+- name: restart kubelet
+  shell: systemctl daemon-reload && systemctl restart kubelet
+
+- name: uncordon control plane nodes
+  delegate_to: localhost
+  become: false
+  shell: "kubectl uncordon {{ inventory_hostname }}"
+
+- name: Remove useless packages from the cache
+  apt:
+    autoclean: yes
+
+- name: Remove dependencies that are no longer required
+  apt:
+    autoremove: yes

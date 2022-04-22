@@ -18,5 +18,6 @@
   - name: refreshing inventory
     meta: refresh_inventory
 
-- import_playbook: ../master/playbook.yaml
+- import_playbook: ../loadbalancer/playbook.yaml
+- import_playbook: ../control/playbook.yaml
 - import_playbook: ../worker/playbook.yaml

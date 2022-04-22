@@ -1,0 +1,10 @@
+loadbalancer:
+  hosts:
+#loadbalancer-node-1#
+    loadbalancer-node-1:
+      ansible_connection: ssh
+      ansible_host: 192.168.64.239
+      ansible_user: ubuntu
+      ansible_ssh_common_args: "-o StrictHostKeyChecking=no -o ControlMaster=no -o ControlPath=none"
+      ansible_ssh_private_key_file: /tmp/loadbalancer/id_ssh_rsa
+#loadbalancer-node-1#

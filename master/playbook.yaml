@@ -1,7 +1,0 @@
----
-- name: initialize cluster
-  hosts: master
-  become: true
-  tasks:
-    - name: initialize master nodes
-      include_tasks: init-cluster-tasks.yaml

@@ -1,0 +1,21 @@
+---
+- name: kubeadm reset
+  shell: kubeadm reset --force && kubeadm reset phase cleanup-node
+
+- name: set facts join command & cert
+  set_fact:
+    join_command: "{{ hostvars[groups['control'][0]]['JOIN_COMMAND']['stdout'] }}"
+
+- name: debug join command
+  debug:
+    msg: 
+      - "{{ join_command }}"
+
+- name: join cluster
+  shell: "{{ join_command }}"
+  register: join_worker_output
+
+- name: debug join worker nodes
+  debug:
+    msg:
+      - "{{ join_worker_output.stdout }}"

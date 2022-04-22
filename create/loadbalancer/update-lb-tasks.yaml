@@ -1,0 +1,20 @@
+---
+- name: Check that the somefile.conf exists
+  stat:
+    path: ./haproxy.cfg
+  register: cfg_file
+
+- name: create haproxy config 
+  template:
+    src: ./haproxy-cfg-template.j2
+    dest: ./haproxy.cfg
+  when: not cfg_file.stat.exists
+
+- name: append haproxy config
+  become: true
+  shell: cat ./haproxy.cfg >> /etc/haproxy/haproxy.cfg
+  when: not cfg_file.stat.exists
+
+- name: restart haproxy svc
+  become: true
+  shell: systemctl restart haproxy

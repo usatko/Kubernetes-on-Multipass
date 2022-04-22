@@ -1,0 +1,6 @@
+---
+- name: Update kubernetes version
+  hosts: localhost
+          
+- import_playbook: ./control/playbook.yaml
+- import_playbook: ./worker/playbook.yaml

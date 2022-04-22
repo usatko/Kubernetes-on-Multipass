@@ -1,0 +1,9 @@
+---
+- name: initialize cluster
+  hosts: control
+  become: true
+  tasks:
+    - name: initialize control nodes
+      include_tasks: init-cluster-tasks.yaml
+      vars:
+        loadbalancer_ip : hostvar[loadbalancer].ansible_host

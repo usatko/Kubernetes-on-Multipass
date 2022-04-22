@@ -1,0 +1,44 @@
+#cloud-init
+
+# create ssh passwordless user
+users:
+  - name: ubuntu
+    home: /home/ubuntu
+    shell: /bin/bash
+    sudo: ALL=(ALL) NOPASSWD:ALL
+    ssh-authorized-keys:
+      - {{ public_key }}
+
+# install needed packages      
+package_update: true
+package_upgrade: true
+packages:
+  - apt-transport-https
+  - ca-certificates
+  - curl
+  - haproxy
+
+# create files
+write_files:
+  - path: /etc/systemd/resolved.conf
+    append: true
+    content: |
+      MulticastDNS=yes
+
+  - path: /etc/systemd/system/mdns@.service
+    content: |
+      [Service]
+      Type=oneshot
+      ExecStart=/usr/bin/systemd-resolve --set-mdns=yes --interface=%i
+      After=sys-subsystem-net-devices-%i.device
+
+      [Install]
+      WantedBy=sys-subsystem-net-devices-%i.device
+
+runcmd:
+  - sudo swapoff -a
+  - systemctl restart systemd-resolved.service
+  - systemctl start mdns@enp0s2.service
+  - systemctl enable mdns@enp0s2.service
+
+package_reboot_if_required: true
