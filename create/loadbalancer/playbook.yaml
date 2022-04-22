@@ -3,4 +3,4 @@
   hosts: loadbalancer
   tasks:
     - name: configure lb
-      include_tasks: create-lb-tasks.yaml
+      include_tasks: update-lb-tasks.yaml

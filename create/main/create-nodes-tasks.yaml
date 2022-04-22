@@ -64,17 +64,24 @@
   register: vm_info
   with_sequence: count="{{ clusterConfig.nodeCount }}"
 
+- name: create .kube directory
+  become_user: ubuntu
+  file:
+    path: ../../inventories
+    state: directory
+    mode: 0755
+
 - name: create inventory file                                                                                
   copy:                                                                                              
     content: |
       {{ clusterConfig.vmType }}:
         hosts:
-    dest: "../inventories/{{ clusterConfig.vmType }}.yaml"
+    dest: "../../inventories/{{ clusterConfig.vmType }}.yaml"
   delegate_to: localhost 
 
 - name: add node details to inventory file
   blockinfile:
-    dest: "../inventories/{{ clusterConfig.vmType }}.yaml"
+    dest: "../../inventories/{{ clusterConfig.vmType }}.yaml"
     marker: "#{{ item.stdout.split(':')[0] }}#"
     block: |2
           {{ item.stdout.split(':')[0] }}:

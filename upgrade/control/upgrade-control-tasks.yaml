@@ -68,6 +68,7 @@
     src: /etc/kubernetes/admin.conf
     dest: "~/.kube/config"
     flat: yes
+  run_once: true
 
 - name: drain control plane nodes
   become: false

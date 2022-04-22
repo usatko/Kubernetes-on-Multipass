@@ -6,4 +6,4 @@
   - name: upgrade worker nodes
     include_tasks: upgrade-worker-tasks.yaml
     vars:
-      upgrade_version: 1.23.5
+      upgrade_version: 1.23.6

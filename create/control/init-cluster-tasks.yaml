@@ -13,23 +13,14 @@
 - name: render kubeadm-config.yaml
   become: false
   template:
-    src: "{{ playbook_dir }}/kubeadm-config-template.j2"
-    dest: "{{ playbook_dir }}/kubeadm-config.yaml"
-  delegate_to: localhost
+    src: ./kubeadm-config-template.j2
+    dest: ./kubeadm-config.yaml
   vars:
     certificate_key: "{{ CERT_KEY.stdout }}"
   when: "'1' in inventory_hostname"
 
-- name: copy kubeadm file
-  copy:
-    src: "{{ playbook_dir }}/kubeadm-config.yaml"
-    dest: /home/ubuntu/kubeadm-config.yaml
-    owner: ubuntu
-  register: kadm_file
-  when: "'1' in inventory_hostname"
-
 - name: initialize the first control node
-  shell: kubeadm init --config {{kadm_file.dest}} --upload-certs
+  shell: kubeadm init --config ./kubeadm-config.yaml --upload-certs
   register: kubeadm_init
   when: "'1' in inventory_hostname"
 
@@ -103,3 +94,4 @@
     src: /etc/kubernetes/admin.conf
     dest: "~/.kube/config"
     flat: yes
+  run_once: true
