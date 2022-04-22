@@ -2,6 +2,7 @@
 - name: update kubernetes version for worker nodes
   hosts: worker
   become: true
+  serial: 1
   tasks:
   - name: upgrade worker nodes
     include_tasks: upgrade-worker-tasks.yaml

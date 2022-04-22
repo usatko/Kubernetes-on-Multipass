@@ -3,7 +3,7 @@ control:
 #control-node-1#
     control-node-1:
       ansible_connection: ssh
-      ansible_host: 192.168.64.233
+      ansible_host: 192.168.64.2
       ansible_user: ubuntu
       ansible_ssh_common_args: "-o StrictHostKeyChecking=no -o ControlMaster=no -o ControlPath=none"
       ansible_ssh_private_key_file: /tmp/control/id_ssh_rsa
@@ -11,7 +11,7 @@ control:
 #control-node-2#
     control-node-2:
       ansible_connection: ssh
-      ansible_host: 192.168.64.234
+      ansible_host: 192.168.64.3
       ansible_user: ubuntu
       ansible_ssh_common_args: "-o StrictHostKeyChecking=no -o ControlMaster=no -o ControlPath=none"
       ansible_ssh_private_key_file: /tmp/control/id_ssh_rsa
@@ -19,7 +19,7 @@ control:
 #control-node-3#
     control-node-3:
       ansible_connection: ssh
-      ansible_host: 192.168.64.235
+      ansible_host: 192.168.64.249
       ansible_user: ubuntu
       ansible_ssh_common_args: "-o StrictHostKeyChecking=no -o ControlMaster=no -o ControlPath=none"
       ansible_ssh_private_key_file: /tmp/control/id_ssh_rsa
