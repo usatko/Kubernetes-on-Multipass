@@ -2,6 +2,7 @@
 - name: Update kubernetes version for control nodes
   hosts: control
   become: true
+  serial: 1
   tasks:
   - name: upgrade control nodes
     include_tasks: upgrade-control-tasks.yaml
