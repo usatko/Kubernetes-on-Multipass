@@ -7,4 +7,4 @@
   - name: upgrade control nodes
     include_tasks: upgrade-control-tasks.yaml
     vars:
-      upgrade_version: 1.23.6
+      upgrade_version: 1.24.1

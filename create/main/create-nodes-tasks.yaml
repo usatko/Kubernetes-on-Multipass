@@ -1,5 +1,5 @@
 ---
-- name: create .kube directory
+- name: create ssh key directory
   become: false
   file:
     path: "/tmp/{{ clusterConfig.vmType }}"
@@ -12,10 +12,10 @@
     type: rsa
     size: 4096
     state: present
-    force: False
+    force: no
   register: sshkey
 
-- name: add public key to cloud-init file
+- name: render cloud-init file
   template:
     src: "../{{ clusterConfig.vmType }}/cloud-init-template.j2"
     dest: "../{{ clusterConfig.vmType }}/cloud-init.yaml"
@@ -25,21 +25,20 @@
 
 - name: create nodes
   shell: |
-    export NODENAME="{{ clusterConfig.vmType }}-node-{{ item }}"
+    export NODENAME="{{ clusterConfig.vmType }}-node-{{ item }}-x"
     export SPEC="{{ clusterConfig.spec }}"
     export CLOUD_INIT_PATH="../{{ clusterConfig.vmType }}/cloud-init.yaml"
     if [[ -z $(multipass ls --format json | jq -c '.list[] | select(.name == env.NODENAME)') ]]; then
-      multipass launch $SPEC --cloud-init $CLOUD_INIT_PATH --name $NODENAME -vvvv
+      multipass launch $SPEC --cloud-init $CLOUD_INIT_PATH --name $NODENAME
     else
       echo "multipass vm $NODENAME already exists"
-      
     fi 
   register: cmd_output
   with_sequence: count="{{ clusterConfig.nodeCount }}"
   loop_control:
-    pause: 10
+    pause: 30
 
-- name: do debug
+- name: debug output
   debug:
     msg:
       - "{{ item.stdout }}"
@@ -48,11 +47,11 @@
     label: "{{ item.item}}"
 
 - name: start nodes
-  shell: multipass start {{ clusterConfig.vmType }}-node-{{ item }}
+  shell: multipass start {{ clusterConfig.vmType }}-node-{{ item }}-x
   with_sequence: count="{{ clusterConfig.nodeCount }}"
 
 - name: wait for node restart
-  shell: multipass info {{ clusterConfig.vmType }}-node-{{ item }} --format json | jq -r '.info | .[keys[0]].state'
+  shell: multipass info {{ clusterConfig.vmType }}-node-{{ item }}-x --format json | jq -r '.info | .[keys[0]].state'
   register: vm_status
   until: vm_status.stdout == 'Running'
   retries: 10
@@ -60,7 +59,7 @@
   with_sequence: count="{{ clusterConfig.nodeCount }}"
 
 - name: map node name to node IP address
-  shell: multipass info {{ clusterConfig.vmType }}-node-{{ item }} --format json | jq -r '.info | "\(keys[0]):\(.[keys[0]].ipv4[0])"'
+  shell: multipass info {{ clusterConfig.vmType }}-node-{{ item }}-x --format json | jq -r '.info | "\(keys[0]):\(.[keys[0]].ipv4[0])"'
   register: vm_info
   with_sequence: count="{{ clusterConfig.nodeCount }}"
 
@@ -79,7 +78,7 @@
     dest: "../../inventories/{{ clusterConfig.vmType }}.yaml"
   delegate_to: localhost 
 
-- name: add node details to inventory file
+- name: update inventory
   blockinfile:
     dest: "../../inventories/{{ clusterConfig.vmType }}.yaml"
     marker: "#{{ item.stdout.split(':')[0] }}#"

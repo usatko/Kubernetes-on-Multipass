@@ -3,20 +3,22 @@
 # create ssh passwordless user
 users:
   - name: ubuntu
-    groups: docker
     home: /home/ubuntu
     shell: /bin/bash
     sudo: ALL=(ALL) NOPASSWD:ALL
     ssh-authorized-keys:
-      - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQC9OQi8RVX2cLAQTlpAJwZdKQEALSmFc/0OI+KuDzNiFef42bLyyun0aEGO/EeEqpqZqD+TUfhzvu9h6XtWBOQGnEiDysSKrS3X3ggNdn3+hd0EBkdFqFw0BUhLio+S31kMI9XSukbZERmhY1tmv9w5zC3TTnDVUY5FHnepag2qgH4omBDk7sn50giNYz9BlC6XdeZgF2M6jxhKX30km+IiHUppuZH0kpWvBicipUUVioB2BocgdpIK6FSs2NWcvmswlYLQH2XaIdu7aaqW9G+g/2ytu4R/IaSfGhNidsHhsBw9iYZI3uHa4ebvUne5JxGNaE7zSITOyDtGVi1QyEKPGbHx6JagWj736u03xTOE5PILSqonbmdf3sVdcdH5r1O6UUO3QERED/9DlQtKz2qmvpZbGpclmQLN3G3SlurGsUnXzz97CxFDER93Xgf0bMHpvUK3JESXr4SRqAxPn0mA6hcqTyxrIDegd8xnPk54KXa67IQ8sM9Xd/zAbo2WB/tfJIvpfiix+w2c2Y6IOCwKuPncIWXXnxeOGSg892JiFDMrYlhesmmb7/L2/YOnGUN+I7Zmu7pQUNVXgHhbzS87gG5TDIedsbbws3n6gbxQukBq8I9Amew7gVU44XyFA/7t2Hp2UbToQJSiKY/C2io6Uo2Plo/gXCoNMDc444DqJw==
+      - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQC+3PbecM2Sx+O6bIifF1p0nH1jYSPj6n1vdrdXnnePof7JDygaCH9WM+XMMppNd7+93/1WDckbVw9oMSvBTotULkSEyRU7USGabat4h84AAyd13Qnk5XhKtemWWv/PSdxirZExvRv/7JBePFKAGrADUuQY0VkRFseBhAvbdsoPV9rNaiTH1s1J/CWWG9kZPRq/7ammvpyIJl2s4fY2p30/FYXrBzx1YMC6aFzdWH6TLMxYJ2XL5GPXnvHdydDycRF4BLL3+dg7JmxLnVZBwquQS3UhYOcoJsFaLVCH97gHwsyFGcFME3mpW/tHIifScgHU7cu+se1ZUnusQMMZE6T4GqhTIQ5uhggKZ7ulNbVm02Ds/gcti4UkEZHejLaeQylThqijiuYT2Ku3xTHF+0Qw93C+nXzDcng1IK0+E5ZDH5L0APwEQW3KiW9oQePDZ45KKgNo7tn4EdgASIm9pzrpUzg0lf7B7DRyUDQ/huZZV4XXQL07ZsdICaZDviBPHq46/GNHuDCDdRhJ4cjdTXQkwKINh6KhcghIUd7npyMMQujPY9o5cIeAfqnpMMqqDyKA4GMUDrpDpksYYrc9q72Yr6kq/YgeZwghSTnCg+EPFn7il4Wcrx8pxHG7769jaX5D2DWT0LbIKjwtyHltYnaMXIU91NLD1ogXD4k7DKQuOQ==
 
 # add apt source for kubernetes
 apt:
   sources:
-    kubernetes:
+    kubernetes.list:
       source: "deb http://apt.kubernetes.io/ kubernetes-xenial main"
       keyserver: keyserver.ubuntu.com
       keyid: 59FE0256827269DC81578F928B57C5C2836F4BEB
+    docker.list:
+      source: "deb https://download.docker.com/linux/ubuntu $RELEASE stable"
+      keyid: 9DC858229FC7DD38854AE2D88D81803C0EBFCD88
 
 # install needed packages      
 package_update: true
@@ -25,21 +27,17 @@ packages:
   - apt-transport-https
   - ca-certificates
   - curl
-  - gnupg-agent 
+  - gnupg2
+  - lsb-release
   - software-properties-common
-  - docker.io
-  - [kubeadm, 1.22.8-00]
-  - [kubectl, 1.22.8-00]
-  - [kubelet, 1.22.8-00]
+  - [containerd.io, 1.6.4-1]
+  - [kubeadm, 1.24.1-00]
+  - [kubectl, 1.24.1-00]
+  - [kubelet, 1.24.1-00]
+  - kubernetes-cni
 
-# create the docker group
-groups:
-  - docker
-
-# Add default auto created user to docker group
-system_info:
-  default_user:
-    groups: [docker]
+bootcmd:
+  - sudo swapoff -a
 
 # create files
 write_files:
@@ -58,25 +56,56 @@ write_files:
       [Install]
       WantedBy=sys-subsystem-net-devices-%i.device
 
-  - path: /etc/docker/daemon.json
+  - path: /etc/modules-load.d/containerd.conf
     content: |
-      {
-        "exec-opts": ["native.cgroupdriver=systemd"],
-        "log-driver": "json-file",
-        "log-opts": {
-          "max-size": "100m"
-        },
-        "storage-driver": "overlay2"
-      }
+      overlay
+      br_netfilter
 
-  - path: /etc/sysconfig/kubelet 
+  - path: /etc/sysctl.d/10-kubernetes.conf
     content: |
-      KUBELET_EXTRA_ARGS=--cgroup-driver=systemd
+      net.bridge.bridge-nf-call-ip6tables = 1
+      net.bridge.bridge-nf-call-iptables = 1
+      net.ipv4.ip_forward = 1
+
+  - path: /etc/sysctl.d/99-kubernetes-cri.conf
+    content: |
+      net.bridge.bridge-nf-call-iptables  = 1
+      net.ipv4.ip_forward                 = 1
+      net.bridge.bridge-nf-call-ip6tables = 1
+
+  - path: /etc/crictl.yaml
+    content: |
+      runtime-endpoint: unix:///run/containerd/containerd.sock
+      image-endpoint: unix:///run/containerd/containerd.sock
+      timeout: 10
+      debug: true
+
+  - path: /etc/default/kubelet 
+    content: |
+      KUBELET_EXTRA_ARGS=--container-runtime=remote --container-runtime-endpoint='unix:///run/containerd/containerd.sock'
+                                                
+  - path: /etc/containerd/config.toml
+    content: |
+      version = 2
+
+      [plugins]
+        [plugins."io.containerd.grpc.v1.cri".containerd]
+          snapshotter = "overlayfs"
+          [plugins."io.containerd.grpc.v1.cri".containerd.default_runtime]
+            runtime_type = "io.containerd.runtime.v1.linux"
+            runtime_engine = "/usr/bin/runc"
+            runtime_root = ""
+          [plugins."io.containerd.grpc.v1.cri".containerd.runtimes]
+            [plugins."io.containerd.grpc.v1.cri".containerd.runtimes.runc]
+              [plugins."io.containerd.grpc.v1.cri".containerd.runtimes.runc.options]
+                SystemdCgroup = true
 
 runcmd:
-  - sudo swapoff -a
-  - systemctl restart systemd-resolved.service
-  - systemctl start mdns@enp0s2.service
-  - systemctl enable mdns@enp0s2.service
+  - sudo sysctl --system
+  - sudo systemctl restart systemd-resolved.service
+  - sudo systemctl start mdns@enp0s2.service
+  - sudo systemctl enable mdns@enp0s2.service
+  - sudo modprobe overlay
+  - sudo modprobe br_netfilter
 
 package_reboot_if_required: true

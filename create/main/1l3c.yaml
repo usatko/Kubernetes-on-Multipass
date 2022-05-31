@@ -2,9 +2,6 @@ configurations:
   - vmType: control
     nodeCount: 3
     spec: '-c 2 -m 2G -d 20G'
-  - vmType: worker
-    nodeCount: 3
-    spec: '-c 2 -m 2G -d 10G'
   - vmType: loadbalancer
     nodeCount: 1
     spec: '-c 1 -m 1G -d 5G'

@@ -1,0 +1,13 @@
+--- 
+- name: delete node
+  hosts: control-node-1
+  tasks:
+    - name: configure lb
+      include_tasks: delete-node-tasks.yaml
+      when: "{{ delete-node }} == 'yes'"
+
+    - name: do maintenance
+      include_tasks: ../create/main/create-nodes-task.yaml
+      vars:
+        clusterConfig: "control"
+        

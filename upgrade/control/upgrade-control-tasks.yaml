@@ -104,8 +104,14 @@
   debug:
     msg: "{{ kubectl_version.stdout }}"
 
+- name: daemon-reload
+  systemd:
+    daemon_reload: yes
+
 - name: restart kubelet
-  shell: systemctl daemon-reload && systemctl restart kubelet
+  service: 
+    name: kubelet
+    state: restarted
 
 - name: uncordon control plane nodes
   become: false

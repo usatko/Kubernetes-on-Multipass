@@ -1,7 +1,7 @@
 ---
 - name: check that the haproxy.cfg exists
   stat:
-    path: ./haproxy.cfg
+    path: ./haproxy/haproxy.cfg
   register: cfg_file
 
 - name: create haproxy directory
@@ -19,17 +19,7 @@
 - name: create haproxy config 
   template:
     src: ./haproxy-cfg-template.j2
-    dest: ./haproxy/haproxy-extra.cfg
-
-- name: stop haproxy svc
-  become: true
-  shell: systemctl stop haproxy
-
-- name: remove haproxy.cfg file
-  become: true
-  file:
-    path: /etc/haproxy/haproxy.cfg
-    state: absent
+    dest: ./haproxy/k8s-haproxy.cfg
 
 - name: assemble haproxy configs
   become: true
@@ -37,6 +27,14 @@
     src: ./haproxy/
     dest: /etc/haproxy/haproxy.cfg
 
-- name: restart haproxy svc
+# - name: Sleep for 60 seconds before starting haproxy
+#   wait_for:
+#     timeout: 60
+#   delegate_to: localhost
+
+- name: reload haproxy svc
   become: true
-  shell: systemctl restart haproxy
+  systemd: 
+    name: haproxy
+    state: restarted
+    daemon_reload: yes

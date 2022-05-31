@@ -1,0 +1,10 @@
+- name: take host out of service 
+  shell: kubectl cordon {{ node_name }}
+  delegate_to: localhost
+
+- name: delete VM
+  shell: multipass delete {{ node_name }}
+
+
+
+
