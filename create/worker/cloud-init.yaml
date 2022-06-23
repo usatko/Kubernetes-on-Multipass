@@ -7,7 +7,7 @@ users:
     shell: /bin/bash
     sudo: ALL=(ALL) NOPASSWD:ALL
     ssh-authorized-keys:
-      - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQC+3PbecM2Sx+O6bIifF1p0nH1jYSPj6n1vdrdXnnePof7JDygaCH9WM+XMMppNd7+93/1WDckbVw9oMSvBTotULkSEyRU7USGabat4h84AAyd13Qnk5XhKtemWWv/PSdxirZExvRv/7JBePFKAGrADUuQY0VkRFseBhAvbdsoPV9rNaiTH1s1J/CWWG9kZPRq/7ammvpyIJl2s4fY2p30/FYXrBzx1YMC6aFzdWH6TLMxYJ2XL5GPXnvHdydDycRF4BLL3+dg7JmxLnVZBwquQS3UhYOcoJsFaLVCH97gHwsyFGcFME3mpW/tHIifScgHU7cu+se1ZUnusQMMZE6T4GqhTIQ5uhggKZ7ulNbVm02Ds/gcti4UkEZHejLaeQylThqijiuYT2Ku3xTHF+0Qw93C+nXzDcng1IK0+E5ZDH5L0APwEQW3KiW9oQePDZ45KKgNo7tn4EdgASIm9pzrpUzg0lf7B7DRyUDQ/huZZV4XXQL07ZsdICaZDviBPHq46/GNHuDCDdRhJ4cjdTXQkwKINh6KhcghIUd7npyMMQujPY9o5cIeAfqnpMMqqDyKA4GMUDrpDpksYYrc9q72Yr6kq/YgeZwghSTnCg+EPFn7il4Wcrx8pxHG7769jaX5D2DWT0LbIKjwtyHltYnaMXIU91NLD1ogXD4k7DKQuOQ==
+      - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQC1ebqOn1oqkDDKoji6fRO595p0MRh+5Yr18PjKK/GsrxGTaxYr2Hn+LrP7neIxn9TrY4YgKYgGykAdxwz+er7eG3Ws51P7NoUe9Lrfd2ER/jpEsSRK+zCmfp5qK41i5mm7fg1RdVvxY75YT9h22ZSaitIyVEAW53kqCQcFk/aHoS9H1nfk5xjfiPZ/M6EqRWaLa5kTblDksqFrgWMWVfRpTI2Pit3eGNv8AQ6xrO0FMZAZyGxjH2pcK+EhGXyb4EqlqgP495Rvvm81d4eEuOijeFDpxka+HYfIF8twv5ijxNu80J+OFAhYZzPpBYEz+7PqD85PzZmLtoILlDvKREsfhDgcTJhdffRrlm/cF0WGGbLAeY3ITEKwB9XFdoSfppnlZ078KCk+02vt+loPThSNZu80PFTh1nvu31751ocBhaH5rUr0LQJfFvX0XNY6L6hMo11kuR9pNC70R4PBH5/Gwmel6W5qF9yphcalw+seykG7FnXx/U4UrLVeezuF4qKN5F8TLVa6/EuJ9KhwRGXHZg6oTvVxLRkZ1pn6YglT6AXCMVU1Y1CRXPWVJhtOhshv40bSamvj7U80s5Zajn8aUxckjKcx6BRY1bOgml5SbFWp27d2wOkLMyrYASjRsiumxlMefcTUi5Cmr9zbHC0fZFYlYknTd86NYu35WLN7bw==
 
 # add apt source for kubernetes
 apt:
@@ -30,11 +30,10 @@ packages:
   - gnupg2
   - lsb-release
   - software-properties-common
-  - [containerd.io, 1.6.4-1]
+  - [containerd.io, 1.6.6-1]
   - [kubeadm, 1.24.1-00]
   - [kubectl, 1.24.1-00]
   - [kubelet, 1.24.1-00]
-  - kubernetes-cni
 
 bootcmd:
   - sudo swapoff -a

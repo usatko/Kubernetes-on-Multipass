@@ -1,6 +1,6 @@
 ---
 - name: initialize first control plane node
-  hosts: control[0]
+  hosts: control
   become: true
   tasks:
     - name: Configure workers
@@ -13,6 +13,7 @@
         - name: init first control plane node
           include_tasks: init-first-ctrl-node-tasks.yaml
           run_once: true
+      run_once: true
       
 - name: initialize additional control plane nodes
   hosts: control[1:]

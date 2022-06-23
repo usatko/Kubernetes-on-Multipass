@@ -1,20 +1,4 @@
 ---
-- name: create ssh key directory
-  become: false
-  file:
-    path: "/tmp/{{ clusterConfig.vmType }}"
-    state: directory
-  register: ssh_key_path
-
-- name: generate SHH key
-  openssh_keypair:
-    path: "{{ ssh_key_path.path }}/id_ssh_rsa"
-    type: rsa
-    size: 4096
-    state: present
-    force: no
-  register: sshkey
-
 - name: render cloud-init file
   template:
     src: "../{{ clusterConfig.vmType }}/cloud-init-template.j2"

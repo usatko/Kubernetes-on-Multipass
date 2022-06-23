@@ -5,11 +5,6 @@
 - name: kubeadm reset
   shell: kubeadm reset --force && kubeadm reset phase cleanup-node
 
-- name: get kubeadm certificate key
-  shell: kubeadm certs certificate-key
-  register: certificate_key
-  delegate_to: "{{ groups.control[0] }}"
-
 - name: create .kube directory
   become_user: ubuntu
   file:
@@ -44,7 +39,6 @@
 
 - name: join other control plane nodes
   shell: "{{ join_command }}"
-  # shell: kubeadm join --config ./kubeadm-join-config.yaml
   register: join_cmd_output
 
 - name: debug join control plane nodes

@@ -2,8 +2,8 @@
 - name: hold packages
   shell: apt-mark hold kubelet kubeadm kubectl
 
-- name: kubeadm reset
-  shell: kubeadm reset --force && kubeadm reset phase cleanup-node
+# - name: kubeadm reset
+#   shell: kubeadm reset --force && kubeadm reset phase cleanup-node
 
 - name: get join command for workers
   shell: kubeadm token create --print-join-command
