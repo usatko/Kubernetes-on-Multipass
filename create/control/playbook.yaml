@@ -1,4 +1,10 @@
 ---
+- hosts: control
+  become: true
+  tasks:
+    - name: install packages
+      include_tasks: ../main/install-packages-tasks.yaml
+
 - name: initialize first control plane node
   hosts: control
   become: true

@@ -9,11 +9,11 @@
 
 - name: create nodes
   shell: |
-    export NODENAME="{{ clusterConfig.vmType }}-node-{{ item }}-x"
+    export NODENAME="{{ clusterConfig.vmType }}-node-{{ item }}"
     export SPEC="{{ clusterConfig.spec }}"
     export CLOUD_INIT_PATH="../{{ clusterConfig.vmType }}/cloud-init.yaml"
     if [[ -z $(multipass ls --format json | jq -c '.list[] | select(.name == env.NODENAME)') ]]; then
-      multipass launch $SPEC --cloud-init $CLOUD_INIT_PATH --name $NODENAME
+      multipass launch jammy $SPEC --cloud-init $CLOUD_INIT_PATH --name $NODENAME
     else
       echo "multipass vm $NODENAME already exists"
     fi 
@@ -31,11 +31,11 @@
     label: "{{ item.item}}"
 
 - name: start nodes
-  shell: multipass start {{ clusterConfig.vmType }}-node-{{ item }}-x
+  shell: multipass start {{ clusterConfig.vmType }}-node-{{ item }}
   with_sequence: count="{{ clusterConfig.nodeCount }}"
 
 - name: wait for node restart
-  shell: multipass info {{ clusterConfig.vmType }}-node-{{ item }}-x --format json | jq -r '.info | .[keys[0]].state'
+  shell: multipass info {{ clusterConfig.vmType }}-node-{{ item }} --format json | jq -r '.info | .[keys[0]].state'
   register: vm_status
   until: vm_status.stdout == 'Running'
   retries: 10
@@ -43,7 +43,7 @@
   with_sequence: count="{{ clusterConfig.nodeCount }}"
 
 - name: map node name to node IP address
-  shell: multipass info {{ clusterConfig.vmType }}-node-{{ item }}-x --format json | jq -r '.info | "\(keys[0]):\(.[keys[0]].ipv4[0])"'
+  shell: multipass info {{ clusterConfig.vmType }}-node-{{ item }} --format json | jq -r '.info | "\(keys[0]):\(.[keys[0]].ipv4[0])"'
   register: vm_info
   with_sequence: count="{{ clusterConfig.nodeCount }}"
 

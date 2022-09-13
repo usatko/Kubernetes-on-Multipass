@@ -2,6 +2,12 @@
 - hosts: worker
   become: true
   tasks:
+    - name: install packages
+      include_tasks: ../main/install-packages-tasks.yaml
+
+- hosts: worker
+  become: true
+  tasks:
     - name: Configure workers
       block: 
         - name: Check if node is part of cluster

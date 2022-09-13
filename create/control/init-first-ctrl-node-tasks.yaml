@@ -2,12 +2,6 @@
 - name: hold packages
   shell: apt-mark hold kubelet kubeadm kubectl
 
-- name: start containerd
-  systemd: 
-    name: containerd
-    state: restarted
-    daemon_reload: yes
-
 - name: kubeadm reset
   shell: kubeadm reset --force && kubeadm reset phase cleanup-node
 
@@ -17,15 +11,15 @@
   register: LB_EXISTS
   delegate_to: localhost
 
-- name: set control plane endpoint
+- name: set control plane endpoint without loadbalancer
   set_fact:
     CTRLPLN_ENDPOINT: "{{ hostvars[groups['control'][0]].ansible_host }}"
-  when: LB_EXISTS.stdout | length  < 1
+  when: LB_EXISTS.stdout == "1"
 
-- name: set control plane endpoint
+- name: set control plane endpoint with loadbalancer
   set_fact:
     CTRLPLN_ENDPOINT: "{{ hostvars[groups['loadbalancer'][0]].ansible_host }}"
-  when: LB_EXISTS.stdout | length > 0
+  when: LB_EXISTS.stdout == "0"
 
 - name: render kubeadm-config.yaml
   become: false

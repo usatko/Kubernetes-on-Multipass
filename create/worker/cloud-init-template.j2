@@ -6,34 +6,8 @@ users:
     home: /home/ubuntu
     shell: /bin/bash
     sudo: ALL=(ALL) NOPASSWD:ALL
-    ssh-authorized-keys:
+    ssh_authorized_keys:
       - {{ public_key }}
-
-# add apt source for kubernetes
-apt:
-  sources:
-    kubernetes.list:
-      source: "deb http://apt.kubernetes.io/ kubernetes-xenial main"
-      keyserver: keyserver.ubuntu.com
-      keyid: 59FE0256827269DC81578F928B57C5C2836F4BEB
-    docker.list:
-      source: "deb https://download.docker.com/linux/ubuntu $RELEASE stable"
-      keyid: 9DC858229FC7DD38854AE2D88D81803C0EBFCD88
-
-# install needed packages      
-package_update: true
-package_upgrade: true
-packages:
-  - apt-transport-https
-  - ca-certificates
-  - curl
-  - gnupg2
-  - lsb-release
-  - software-properties-common
-  - [containerd.io, 1.6.6-1]
-  - [kubeadm, 1.24.1-00]
-  - [kubectl, 1.24.1-00]
-  - [kubelet, 1.24.1-00]
 
 bootcmd:
   - sudo swapoff -a
@@ -60,12 +34,6 @@ write_files:
       overlay
       br_netfilter
 
-  - path: /etc/sysctl.d/10-kubernetes.conf
-    content: |
-      net.bridge.bridge-nf-call-ip6tables = 1
-      net.bridge.bridge-nf-call-iptables = 1
-      net.ipv4.ip_forward = 1
-
   - path: /etc/sysctl.d/99-kubernetes-cri.conf
     content: |
       net.bridge.bridge-nf-call-iptables  = 1
@@ -88,16 +56,14 @@ write_files:
       version = 2
 
       [plugins]
-        [plugins."io.containerd.grpc.v1.cri".containerd]
-          snapshotter = "overlayfs"
-          [plugins."io.containerd.grpc.v1.cri".containerd.default_runtime]
-            runtime_type = "io.containerd.runtime.v1.linux"
-            runtime_engine = "/usr/bin/runc"
-            runtime_root = ""
-          [plugins."io.containerd.grpc.v1.cri".containerd.runtimes]
-            [plugins."io.containerd.grpc.v1.cri".containerd.runtimes.runc]
-              [plugins."io.containerd.grpc.v1.cri".containerd.runtimes.runc.options]
-                SystemdCgroup = true
+        [plugins."io.containerd.grpc.v1.cri"]
+          [plugins."io.containerd.grpc.v1.cri".containerd]
+            snapshotter = "overlayfs"
+            [plugins."io.containerd.grpc.v1.cri".containerd.runtimes]
+              [plugins."io.containerd.grpc.v1.cri".containerd.runtimes.runc]
+                runtime_type = "io.containerd.runc.v2"
+                [plugins."io.containerd.grpc.v1.cri".containerd.runtimes.runc.options]
+                  SystemdCgroup = true
 
 runcmd:
   - sudo sysctl --system
@@ -107,4 +73,5 @@ runcmd:
   - sudo modprobe overlay
   - sudo modprobe br_netfilter
 
+package_upgrade: true
 package_reboot_if_required: true
