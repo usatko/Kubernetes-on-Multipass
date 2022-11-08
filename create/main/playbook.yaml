@@ -16,6 +16,7 @@
       size: 4096
       state: present
       force: no
+      regenerate: never
     register: sshkey
 
   - name: read k8s cluster node VM configuration from file
