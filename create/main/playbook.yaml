@@ -2,6 +2,23 @@
 - name: create Multipass VMs for a K8s cluster
   hosts: localhost
   tasks:
+  - name: create ssh key directory
+    become: false
+    file:
+      path: "/tmp"
+      state: directory
+    register: ssh_key_path
+
+  - name: generate SHH key
+    openssh_keypair:
+      path: "{{ ssh_key_path.path }}/id_ssh_rsa"
+      type: rsa
+      size: 4096
+      state: present
+      force: no
+      regenerate: never
+    register: sshkey
+
   - name: read k8s cluster node VM configuration from file
     include_vars:
       file: "{{ configFile }}"

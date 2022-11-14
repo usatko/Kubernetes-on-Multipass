@@ -1,18 +1,11 @@
 # kubeadm-config.yaml
 apiVersion: kubeadm.k8s.io/v1beta3
-kind: InitConfiguration
-certificateKey: {{ certificate_key }}
----
-apiVersion: kubeadm.k8s.io/v1beta3
 kind: ClusterConfiguration
-kubernetesVersion: v1.22.8
+kubernetesVersion: v1.25.0
+controlPlaneEndpoint: "{{ CTRLPLN_ENDPOINT }}:6443"
+clusterName: "hub-cluster"
 networking:
   podSubnet: 10.244.0.0/16
-apiServer:
-  certSANs:
-  - localhost
-  - 127.0.0.1
-controlPlaneEndpoint: "{{ hostvars[groups['loadbalancer'][0]].ansible_host }}:6443"
 ---
 apiVersion: kubelet.config.k8s.io/v1beta1
 kind: KubeletConfiguration

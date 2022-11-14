@@ -29,8 +29,6 @@ Kubernetes on multipass ubuntu VMs using ansible
     1. [update-lb-tasks.yaml](./create/loadbalancer/update-lb-tasks.yaml): tasks to update the haproxy load balancer config
 
 - What's in the [/main](./create/main/) directory?
-    1. [1c3w.yaml](./create/main/1c3w.yaml): defines cluster nodes config file in yaml - 1 control plane nodes, 3 worker nodes
-    1. [1l3c3w.yaml](./create/main/1l3c3w.yaml): defines cluster nodes config file in yaml - 1 load balancer, 3 control plane nodes, 3 worker nodes
     1. [create-nodes-tasks.yaml](./create/main/create-nodes-tasks.yaml): defines tasks to create the nodes according to config file and creates an inventory file to be consumed in a different ansible play
     1. [playbook.yaml](./create/main/playbook.yaml): defines the main ansible playbook - parses the config file, executes tasks in `create-nodes-tasks.yaml` and run plays from other playbooks to configure an HA k8s cluster
 

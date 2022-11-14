@@ -1,13 +1,19 @@
 ---
-- hosts: control
+- hosts: worker
   become: true
   tasks:
-    - name: get join command for workers
-      shell: kubeadm token create --print-join-command
-      register: JOIN_COMMAND
-      
+    - name: install packages
+      include_tasks: ../main/install-packages-tasks.yaml
+
 - hosts: worker
   become: true
   tasks:
     - name: Configure workers
-      include_tasks: join-workers-tasks.yaml
+      block: 
+        - name: Check if node is part of cluster
+          become: false
+          shell: kubectl get nodes {{ inventory_hostname }}
+          delegate_to: localhost
+      rescue:
+        - name: Configure worker nodes if node isn't in the cluster
+          include_tasks: join-workers-tasks.yaml

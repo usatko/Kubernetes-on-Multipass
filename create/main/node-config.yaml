@@ -4,4 +4,7 @@ configurations:
     spec: '-c 2 -m 4G -d 20G'
   - vmType: worker
     nodeCount: 3
-    spec: '-c 2 -m 4G -d 10G'
+    spec: '-c 3 -m 4G -d 20G'
+  # - vmType: loadbalancer
+  #   nodeCount: 1
+  #   spec: '-c 1 -m 512M -d 5G'

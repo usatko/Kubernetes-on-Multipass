@@ -3,24 +3,24 @@ worker:
 #worker-node-1#
     worker-node-1:
       ansible_connection: ssh
-      ansible_host: 192.168.64.250
+      ansible_host: 192.168.64.3
       ansible_user: ubuntu
       ansible_ssh_common_args: "-o StrictHostKeyChecking=no -o ControlMaster=no -o ControlPath=none"
-      ansible_ssh_private_key_file: /tmp/worker/id_ssh_rsa
+      ansible_ssh_private_key_file: /private/tmp/id_ssh_rsa
 #worker-node-1#
 #worker-node-2#
     worker-node-2:
       ansible_connection: ssh
-      ansible_host: 192.168.64.251
+      ansible_host: 192.168.64.4
       ansible_user: ubuntu
       ansible_ssh_common_args: "-o StrictHostKeyChecking=no -o ControlMaster=no -o ControlPath=none"
-      ansible_ssh_private_key_file: /tmp/worker/id_ssh_rsa
+      ansible_ssh_private_key_file: /private/tmp/id_ssh_rsa
 #worker-node-2#
 #worker-node-3#
     worker-node-3:
       ansible_connection: ssh
-      ansible_host: 192.168.64.252
+      ansible_host: 192.168.64.5
       ansible_user: ubuntu
       ansible_ssh_common_args: "-o StrictHostKeyChecking=no -o ControlMaster=no -o ControlPath=none"
-      ansible_ssh_private_key_file: /tmp/worker/id_ssh_rsa
+      ansible_ssh_private_key_file: /private/tmp/id_ssh_rsa
 #worker-node-3#

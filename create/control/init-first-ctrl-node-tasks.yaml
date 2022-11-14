@@ -1,0 +1,62 @@
+---
+- name: hold packages
+  shell: apt-mark hold kubelet kubeadm kubectl
+
+- name: kubeadm reset
+  shell: kubeadm reset --force && kubeadm reset phase cleanup-node
+
+- name: check for lb
+  become: false
+  shell: multipass ls | grep load-balancer > /dev/null 2>&1; echo $?
+  register: LB_EXISTS
+  delegate_to: localhost
+
+- name: set control plane endpoint without loadbalancer
+  set_fact:
+    CTRLPLN_ENDPOINT: "{{ hostvars[groups['control'][0]].ansible_host }}"
+  when: LB_EXISTS.stdout == "1"
+
+- name: set control plane endpoint with loadbalancer
+  set_fact:
+    CTRLPLN_ENDPOINT: "{{ hostvars[groups['loadbalancer'][0]].ansible_host }}"
+  when: LB_EXISTS.stdout == "0"
+
+- name: render kubeadm-config.yaml
+  become: false
+  template:
+    src: ./kubeadm-config-template.j2
+    dest: ./kubeadm-config.yaml
+
+- name: initialize the first control node
+  shell: kubeadm init --config=kubeadm-config.yaml --upload-certs
+  register: kubeadm_init
+
+- name: debug kubeadm init
+  debug:
+    msg:
+      - "{{ kubeadm_init.stdout }}"
+
+- name: create .kube directory
+  become_user: ubuntu
+  file:
+    path: $HOME/.kube
+    state: directory
+    mode: 0755
+  register: kube_path
+
+- name: copy admin.conf to .kube dir
+  copy:
+    src: /etc/kubernetes/admin.conf
+    dest: "{{kube_path.path}}/config"
+    remote_src: yes
+    owner: ubuntu
+
+- name: install Pod network
+  become: false
+  shell: kubectl apply -f https://raw.githubusercontent.com/flannel-io/flannel/master/Documentation/kube-flannel.yml
+
+- name: copy admin.conf to local
+  fetch:
+    src: /etc/kubernetes/admin.conf
+    dest: "~/.kube/config"
+    flat: yes

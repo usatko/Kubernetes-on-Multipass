@@ -1,21 +1,5 @@
 ---
-- name: create .kube directory
-  become: false
-  file:
-    path: "/tmp/{{ clusterConfig.vmType }}"
-    state: directory
-  register: ssh_key_path
-
-- name: generate SHH key
-  openssh_keypair:
-    path: "{{ ssh_key_path.path }}/id_ssh_rsa"
-    type: rsa
-    size: 4096
-    state: present
-    force: False
-  register: sshkey
-
-- name: add public key to cloud-init file
+- name: render cloud-init file
   template:
     src: "../{{ clusterConfig.vmType }}/cloud-init-template.j2"
     dest: "../{{ clusterConfig.vmType }}/cloud-init.yaml"
@@ -29,17 +13,16 @@
     export SPEC="{{ clusterConfig.spec }}"
     export CLOUD_INIT_PATH="../{{ clusterConfig.vmType }}/cloud-init.yaml"
     if [[ -z $(multipass ls --format json | jq -c '.list[] | select(.name == env.NODENAME)') ]]; then
-      multipass launch $SPEC --cloud-init $CLOUD_INIT_PATH --name $NODENAME -vvvv
+      multipass launch jammy $SPEC --cloud-init $CLOUD_INIT_PATH --name $NODENAME
     else
       echo "multipass vm $NODENAME already exists"
-      
     fi 
   register: cmd_output
   with_sequence: count="{{ clusterConfig.nodeCount }}"
   loop_control:
-    pause: 10
+    pause: 30
 
-- name: do debug
+- name: debug output
   debug:
     msg:
       - "{{ item.stdout }}"
@@ -79,7 +62,7 @@
     dest: "../../inventories/{{ clusterConfig.vmType }}.yaml"
   delegate_to: localhost 
 
-- name: add node details to inventory file
+- name: update inventory
   blockinfile:
     dest: "../../inventories/{{ clusterConfig.vmType }}.yaml"
     marker: "#{{ item.stdout.split(':')[0] }}#"
