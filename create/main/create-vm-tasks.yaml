@@ -1,21 +1,39 @@
 ---
 - name: render cloud-init file
   template:
-    src: "../{{ clusterConfig.vmType }}/cloud-init-template.j2"
-    dest: "../{{ clusterConfig.vmType }}/cloud-init.yaml"
+    src: "cloud-init-template.j2"
+    dest: "cloud-init.yaml"
   delegate_to: localhost
   vars:
     public_key: "{{ sshkey.public_key }}"
+  run_once: true
 
-- name: create nodes
+- name: set cloud-init file path
+  set_fact:
+    CLOUD_INIT_PATH: "cloud-init.yaml"
+
+- name: render cloud-init file
+  template:
+    src: "../loadbalancer/cloud-init-template.j2"
+    dest: "../loadbalancer/cloud-init.yaml"
+  delegate_to: localhost
+  vars:
+    public_key: "{{ sshkey.public_key }}"
+  when: clusterConfig.vmType == 'loadbalancer'
+
+- name: set cloud-init file path
+  set_fact:
+    CLOUD_INIT_PATH: "../loadbalancer/cloud-init.yaml"
+  when: clusterConfig.vmType == 'loadbalancer'
+
+- name: create vm
   shell: |
-    export NODENAME="{{ clusterConfig.vmType }}-node-{{ item }}"
+    export VMNAME="{{ clusterConfig.vmType }}-node-{{ item }}"
     export SPEC="{{ clusterConfig.spec }}"
-    export CLOUD_INIT_PATH="../{{ clusterConfig.vmType }}/cloud-init.yaml"
-    if [[ -z $(multipass ls --format json | jq -c '.list[] | select(.name == env.NODENAME)') ]]; then
-      multipass launch jammy $SPEC --cloud-init $CLOUD_INIT_PATH --name $NODENAME
+    if [[ -z $(multipass ls --format json | jq -c '.list[] | select(.name == env.VMNAME)') ]]; then
+      multipass launch jammy $SPEC --cloud-init {{ CLOUD_INIT_PATH }} --name $VMNAME
     else
-      echo "multipass vm $NODENAME already exists"
+      echo "multipass vm $VMNAME already exists"
     fi 
   register: cmd_output
   with_sequence: count="{{ clusterConfig.nodeCount }}"
@@ -30,11 +48,11 @@
   loop_control: 
     label: "{{ item.item}}"
 
-- name: start nodes
+- name: start vm
   shell: multipass start {{ clusterConfig.vmType }}-node-{{ item }}
   with_sequence: count="{{ clusterConfig.nodeCount }}"
 
-- name: wait for node restart
+- name: wait for vm restart
   shell: multipass info {{ clusterConfig.vmType }}-node-{{ item }} --format json | jq -r '.info | .[keys[0]].state'
   register: vm_status
   until: vm_status.stdout == 'Running'
@@ -47,12 +65,12 @@
   register: vm_info
   with_sequence: count="{{ clusterConfig.nodeCount }}"
 
-- name: create .kube directory
-  become_user: ubuntu
+- name: create inventory directory
   file:
     path: ../../inventories
     state: directory
     mode: 0755
+  delegate_to: localhost
 
 - name: create inventory file                                                                                
   copy:                                                                                              
@@ -60,7 +78,7 @@
       {{ clusterConfig.vmType }}:
         hosts:
     dest: "../../inventories/{{ clusterConfig.vmType }}.yaml"
-  delegate_to: localhost 
+  delegate_to: localhost
 
 - name: update inventory
   blockinfile:

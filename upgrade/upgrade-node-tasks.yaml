@@ -5,7 +5,7 @@
 - name: unhold kubeadm
   shell: apt-mark unhold kubeadm
 
-- name: install kubeadm
+- name: install new kubeadm version
   apt:
     name: "kubeadm={{ upgrade_version }}-00"
 
@@ -23,30 +23,22 @@
 - name: kubeadm upgrade plan
   shell: kubeadm upgrade plan
   register: kubeadm_upgrade_plan
+  when: ansible_hostname == groups.control[0]
 
 - name: show kubeadm upgrade plan
   debug:
     msg: "{{ kubeadm_upgrade_plan.stdout }}"
+  when: ansible_hostname == groups.control[0]
 
 - name: kubeadm upgrade first control plane node
   shell: "kubeadm upgrade apply v{{ upgrade_version }} -y"
-  register: kubeadm_upgrade_first
-  when: "'1' in inventory_hostname"
+  register: kubeadm_upgrade_first_cp
+  when: ansible_hostname == groups.control[0]
 
 - name: show kubeadm upgrade first control plane node
   debug:
-    msg: "{{ kubeadm_upgrade_first.stdout }}"
-  when: "'1' in inventory_hostname"
-
-- name: kubeadm upgrade other control plane nodes
-  shell: "kubeadm upgrade node"
-  register: kubeadm_upgrade_other
-  when: "'1' not in inventory_hostname"
-
-- name: show kubeadm upgrade other control plane nodes
-  debug:
-    msg: "{{ kubeadm_upgrade_other.stdout }}"
-  when: "'1' not in inventory_hostname"
+    msg: "{{ kubeadm_upgrade_first_cp.stdout }}"
+  when: ansible_hostname == groups.control[0]
 
 - name: create .kube directory
   become_user: ubuntu
@@ -55,6 +47,7 @@
     state: directory
     mode: 0755
   register: kube_path
+  when: ansible_hostname == groups.control[0]
 
 - name: copy admin.conf to .kube dir
   copy:
@@ -62,6 +55,7 @@
     dest: "{{kube_path.path}}/config"
     remote_src: yes
     owner: ubuntu
+  when: ansible_hostname == groups.control[0]
 
 - name: copy admin.conf to local
   fetch:
@@ -69,9 +63,21 @@
     dest: "~/.kube/config"
     flat: yes
   run_once: true
+  when: ansible_hostname == groups.control[0]
 
-- name: drain control plane nodes
+- name: kubeadm upgrade node
+  shell: "kubeadm upgrade node"
+  register: kubeadm_upgrade
+  when: ansible_hostname != groups.control[0]
+
+- name: show kubeadm upgrade node
+  debug:
+    msg: "{{ kubeadm_upgrade.stdout }}"
+  when: ansible_hostname != groups.control[0]
+
+- name: drain node
   become: false
+  delegate_to: localhost
   shell: "kubectl drain {{ inventory_hostname }} --ignore-daemonsets"
 
 - name: unhold kubelet & kubectl
@@ -95,14 +101,25 @@
   debug:
     msg: "{{ kubelet_version.stdout }}"
 
-- name: kubectl version
+- name: kubectl server version
   become: false
-  shell: kubectl version
-  register: kubectl_version
+  shell: kubectl version -o yaml
+  register: kubectl_server_version
+  when: ansible_hostname == groups.control[0]
 
-- name: show kubectl version
+- name: show kubectl server version
   debug:
-    msg: "{{ kubectl_version.stdout }}"
+    msg: "{{ kubectl_server_version.stdout }}"
+  when: ansible_hostname == groups.control[0]
+
+- name: kubectl client version
+  become: false
+  shell: kubectl version --client -o yaml
+  register: kubectl_client_version
+
+- name: show kubectl client version
+  debug:
+    msg: "{{ kubectl_client_version.stdout }}"
 
 - name: daemon-reload
   systemd:
@@ -113,8 +130,9 @@
     name: kubelet
     state: restarted
 
-- name: uncordon control plane nodes
+- name: uncordon node
   become: false
+  delegate_to: localhost
   shell: "kubectl uncordon {{ inventory_hostname }}"
 
 - name: Remove useless packages from the cache

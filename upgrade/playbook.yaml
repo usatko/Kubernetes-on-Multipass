@@ -1,6 +1,10 @@
 ---
-- name: Update kubernetes version
-  hosts: localhost
-          
-- import_playbook: ./control/playbook.yaml
-- import_playbook: ./worker/playbook.yaml
+- name: kubernetes upgrade
+  hosts: control:worker
+  become: true
+  serial: 1
+  tasks:
+  - name: upgrade nodes
+    include_tasks: upgrade-node-tasks.yaml
+    vars:
+      upgrade_version: 1.26.1

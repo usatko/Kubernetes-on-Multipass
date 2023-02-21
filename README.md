@@ -29,8 +29,8 @@ Kubernetes on multipass ubuntu VMs using ansible
     1. [update-lb-tasks.yaml](./create/loadbalancer/update-lb-tasks.yaml): tasks to update the haproxy load balancer config
 
 - What's in the [/main](./create/main/) directory?
-    1. [create-nodes-tasks.yaml](./create/main/create-nodes-tasks.yaml): defines tasks to create the nodes according to config file and creates an inventory file to be consumed in a different ansible play
-    1. [playbook.yaml](./create/main/playbook.yaml): defines the main ansible playbook - parses the config file, executes tasks in `create-nodes-tasks.yaml` and run plays from other playbooks to configure an HA k8s cluster
+    1. [create-vm-tasks.yaml](./create/main/create-vm-tasks.yaml): defines tasks to create the nodes according to config file and creates an inventory file to be consumed in a different ansible play
+    1. [playbook.yaml](./create/main/playbook.yaml): defines the main ansible playbook - parses the config file, executes tasks in `create-vm-tasks.yaml` and run plays from other playbooks to configure an HA k8s cluster
 
 - What's in the [/worker](./create/worker/) directory?
     1. [cloud-init-template.j2](./create/worker/cloud-init-template.j2): multipass supports cloud-init, this template is used to create the worker VMs cloud-init config file
