@@ -1,6 +1,0 @@
---- 
-- name: configure loadbalancer for control plane nodes
-  hosts: loadbalancer
-  tasks:
-    - name: configure lb
-      include_tasks: update-lb-tasks.yaml

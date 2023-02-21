@@ -19,13 +19,13 @@
       regenerate: never
     register: sshkey
 
-  - name: read k8s cluster node VM configuration from file
+  - name: read k8s cluster VM configuration from file
     include_vars:
       file: "{{ configFile }}"
       name: config
 
-  - name: configure nodes
-    include_tasks: create-nodes-tasks.yaml
+  - name: configure vm
+    include_tasks: create-vm-tasks.yaml
     vars:
       clusterConfig: "{{ conf }}"
     loop: "{{ config.configurations }}"
@@ -35,6 +35,48 @@
   - name: refreshing inventory
     meta: refresh_inventory
 
-- import_playbook: ../loadbalancer/playbook.yaml
-- import_playbook: ../control/playbook.yaml
-- import_playbook: ../worker/playbook.yaml
+- name: initialize nodes
+  hosts: control:worker
+  become: true
+  tasks:
+  - name: set KUBERNETES VERSION in kubeadm config template
+    set_fact:
+      KUBERNETES_VERSION: "1.25.0"
+
+  - name: install packages
+    include_tasks: install-packages-tasks.yaml
+
+- name: configure loadbalancer for control plane nodes
+  hosts: loadbalancer
+  tasks:
+    - name: configure lb
+      include_tasks: ../loadbalancer/configure-lb-tasks.yaml
+
+- name: initialize first control plane node
+  hosts: control[0]
+  become: true
+  tasks:
+    - name: Configure first control plane node
+      block: 
+        - name: check if node is part of cluster
+          become: false
+          shell: kubectl get nodes {{ inventory_hostname }}
+          delegate_to: localhost
+      rescue:
+        - name: configure first control plane node since node is not part of cluster
+          include_tasks: ../control/init-first-ctrl-node-tasks.yaml
+
+- name: configure all other nodes
+  hosts: control:worker
+  serial: 1
+  become: true
+  tasks:
+    - name: Configure remaining nodes
+      block: 
+        - name: Check if node is part of cluster
+          become: false
+          shell: kubectl get nodes {{ inventory_hostname }}
+          delegate_to: localhost
+      rescue:
+        - name: Configure worker nodes if node isn't in the cluster
+          include_tasks: join-cluster-tasks.yaml

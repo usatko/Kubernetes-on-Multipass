@@ -50,9 +50,9 @@
     update_cache: yes
   vars:
     packages:
-      - kubelet=1.25.0-00
-      - kubeadm=1.25.0-00
-      - kubectl=1.25.0-00
+      - "kubelet={{ KUBERNETES_VERSION }}-00"
+      - "kubeadm={{ KUBERNETES_VERSION }}-00"
+      - "kubectl={{ KUBERNETES_VERSION }}-00"
 
 - name: start containerd
   systemd: 

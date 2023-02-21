@@ -12,36 +12,52 @@
     state: directory
     mode: 0755
   register: kube_path
+  when: "'control' in group_names"
 
 - name: get kubeadm certificate key
   shell: kubeadm certs certificate-key
   register: CERT_KEY
   delegate_to: "{{ groups.control[0] }}"
+  when: "'control' in group_names"
 
 - name: upload certificate
   shell: kubeadm init phase upload-certs --upload-certs --certificate-key={{ CERT_KEY.stdout }}
   delegate_to: "{{ groups.control[0] }}"
+  when: "'control' in group_names"
 
-- name: get join command
+- name: get join command for control plane nodes
   become: false
   shell: kubeadm token create --print-join-command --certificate-key={{ CERT_KEY.stdout }}
   register: JOIN_COMMAND
   delegate_to: "{{ groups.control[0] }}"
-  
+  when: "'control' in group_names"
+
 - name: set facts join command
   set_fact:
     join_command: "{{ JOIN_COMMAND.stdout }}"
+  when: "'control' in group_names"
 
-- name: debug join command
+- name: get join command for worker nodes
+  shell: kubeadm token create --print-join-command
+  register: JOIN_COMMAND
+  delegate_to: "{{ groups.control[0] }}"
+  when: "'worker' in group_names"
+
+- name: set facts join command
+  set_fact:
+    join_command: "{{ JOIN_COMMAND.stdout }}"
+  when: "'worker' in group_names"
+
+- name: show join command
   debug:
     msg:
       - "{{ join_command }}"
 
-- name: join other control plane nodes
+- name: join cluster
   shell: "{{ join_command }}"
   register: join_cmd_output
 
-- name: debug join control plane nodes
+- name: show join cluster
   debug:
     msg:
       - "{{ join_cmd_output.stdout }}"

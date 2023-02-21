@@ -29,8 +29,7 @@ write_files:
     content: |
       [Service]
       Type=oneshot
-      ExecStart=/usr/bin/systemd-resolve --set-mdns=yes --interface=%i
-      After=sys-subsystem-net-devices-%i.device
+      ExecStart=/usr/bin/resolvectl mdns %i yes
 
       [Install]
       WantedBy=sys-subsystem-net-devices-%i.device
@@ -38,7 +37,7 @@ write_files:
 runcmd:
   - sudo swapoff -a
   - systemctl restart systemd-resolved.service
-  - systemctl start mdns@enp0s2.service
-  - systemctl enable mdns@enp0s2.service
+  - systemctl start mdns@enp0s1.service
+  - systemctl enable mdns@enp0s1.service
 
 package_reboot_if_required: true

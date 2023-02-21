@@ -14,21 +14,6 @@ bootcmd:
 
 # create files
 write_files:
-  - path: /etc/systemd/resolved.conf
-    append: true
-    content: |
-      MulticastDNS=yes
-
-  - path: /etc/systemd/system/mdns@.service
-    content: |
-      [Service]
-      Type=oneshot
-      ExecStart=/usr/bin/systemd-resolve --set-mdns=yes --interface=%i
-      After=sys-subsystem-net-devices-%i.device
-
-      [Install]
-      WantedBy=sys-subsystem-net-devices-%i.device
-
   - path: /etc/modules-load.d/containerd.conf
     content: |
       overlay
@@ -67,9 +52,6 @@ write_files:
 
 runcmd:
   - sudo sysctl --system
-  - sudo systemctl restart systemd-resolved.service
-  - sudo systemctl start mdns@enp0s2.service
-  - sudo systemctl enable mdns@enp0s2.service
   - sudo modprobe overlay
   - sudo modprobe br_netfilter
 
