@@ -31,9 +31,11 @@
     export VMNAME="{{ clusterConfig.vmType }}-node-{{ item }}"
     export SPEC="{{ clusterConfig.spec }}"
     if [[ -z $(multipass ls --format json | jq -c '.list[] | select(.name == env.VMNAME)') ]]; then
-      multipass launch jammy $SPEC --cloud-init {{ CLOUD_INIT_PATH }} --name $VMNAME
+      multipass launch jammy $SPEC --cloud-init {{ CLOUD_INIT_PATH }} --name $VMNAME > /dev/null 2>&1
+      multipass info $VMNAME
     else
       echo "multipass vm $VMNAME already exists"
+      multipass info $VMNAME
     fi 
   register: cmd_output
   with_sequence: count="{{ clusterConfig.nodeCount }}"
