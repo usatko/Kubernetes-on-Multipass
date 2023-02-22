@@ -19,6 +19,16 @@
       regenerate: never
     register: sshkey
 
+  - name: create inventory directory
+    file:
+      path: ../../inventories
+      state: "{{ item }}"
+      mode: 0755
+    delegate_to: localhost
+    with_items:
+      - absent
+      - directory
+
   - name: read k8s cluster VM configuration from file
     include_vars:
       file: "{{ configFile }}"

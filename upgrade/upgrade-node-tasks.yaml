@@ -13,7 +13,7 @@
   shell: apt-mark hold kubeadm
 
 - name: kubeadm version
-  shell: kubeadm version
+  shell: kubeadm version -o yaml
   register: kubeadm_version
 
 - name: show kubeadm version
@@ -101,6 +101,10 @@
   debug:
     msg: "{{ kubelet_version.stdout }}"
 
+- name: pause
+  pause:
+    seconds: 10
+    
 - name: kubectl server version
   become: false
   shell: kubectl version -o yaml
