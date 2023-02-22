@@ -65,13 +65,6 @@
   register: vm_info
   with_sequence: count="{{ clusterConfig.nodeCount }}"
 
-- name: create inventory directory
-  file:
-    path: ../../inventories
-    state: directory
-    mode: 0755
-  delegate_to: localhost
-
 - name: create inventory file                                                                                
   copy:                                                                                              
     content: |
