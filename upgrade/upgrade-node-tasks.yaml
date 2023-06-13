@@ -8,6 +8,7 @@
 - name: install new kubeadm version
   apt:
     name: "kubeadm={{ upgrade_version }}-00"
+    allow_downgrade: yes
 
 - name: hold kubeadm
   shell: apt-mark hold kubeadm

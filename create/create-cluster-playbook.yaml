@@ -5,7 +5,7 @@
   - name: create ssh key directory
     become: false
     file:
-      path: "/tmp"
+      path: "~/.ssh/k8s-nodes"
       state: directory
     register: ssh_key_path
 
@@ -31,14 +31,14 @@
 
   - name: read k8s cluster VM configuration from file
     include_vars:
-      file: "{{ configFile }}"
+      file: vars.yaml
       name: config
 
   - name: configure vm
     include_tasks: create-vm-tasks.yaml
     vars:
       clusterConfig: "{{ conf }}"
-    loop: "{{ config.configurations }}"
+    loop: "{{ config.nodeConfigurations }}"
     loop_control:
       loop_var: conf
 
@@ -51,7 +51,7 @@
   tasks:
   - name: set KUBERNETES VERSION in kubeadm config template
     set_fact:
-      KUBERNETES_VERSION: "1.25.0"
+      KUBERNETES_VERSION: "1.27.1"
 
   - name: install packages
     include_tasks: install-packages-tasks.yaml
@@ -61,6 +61,7 @@
   tasks:
     - name: configure lb
       include_tasks: ../loadbalancer/configure-lb-tasks.yaml
+      when: "'loadbalancer' in group_names"
 
 - name: initialize first control plane node
   hosts: control[0]
@@ -74,11 +75,11 @@
           delegate_to: localhost
       rescue:
         - name: configure first control plane node since node is not part of cluster
-          include_tasks: ../control/init-first-ctrl-node-tasks.yaml
+          include_tasks: control/init-first-ctrl-node-tasks.yaml
 
 - name: configure all other nodes
   hosts: control:worker
-  serial: 1
+  serial: 3
   become: true
   tasks:
     - name: Configure remaining nodes
@@ -90,3 +91,25 @@
       rescue:
         - name: Configure worker nodes if node isn't in the cluster
           include_tasks: join-cluster-tasks.yaml
+
+- name: install CNI
+  hosts: localhost
+  tasks:
+    - name: Add cilium chart repo
+      kubernetes.core.helm_repository:
+        name: cilium
+        repo_url: "https://helm.cilium.io/"
+        repo_state: present
+
+    - name: install cilium
+      kubernetes.core.helm:
+        name: cilium
+        chart_ref: cilium/cilium
+        chart_version: 1.13.3
+        release_namespace: kube-system
+        create_namespace: yes
+        release_state: present
+        values:
+          kubeProxyReplacement: strict
+          k8sServiceHost: "{{ hostvars[groups['control'][0]].ansible_host }}"
+          k8sServicePort: 6443

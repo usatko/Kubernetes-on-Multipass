@@ -1,4 +1,4 @@
-configurations:
+nodeConfigurations:
   - vmType: control
     nodeCount: 1
     spec: '-c 3 -m 4G -d 20G'
@@ -8,3 +8,6 @@ configurations:
   # - vmType: loadbalancer
   #   nodeCount: 1
   #   spec: '-c 1 -m 512M -d 5G'
+
+apiServerConfigurations:
+  saIssuerUrl: https://example.com

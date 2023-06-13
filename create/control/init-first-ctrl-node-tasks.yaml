@@ -2,8 +2,12 @@
 - name: hold packages
   shell: apt-mark hold kubelet kubeadm kubectl
 
-- name: kubeadm reset
-  shell: kubeadm reset --force && kubeadm reset phase cleanup-node
+# - name: kubeadm reset
+#   shell: kubeadm reset --force && kubeadm reset phase cleanup-node
+
+- name: set service account issuer URL fact
+  set_fact:
+    SA_ISSUER_URL: config.apiServerConfigurations.saIssuerUrl
 
 - name: check for lb
   become: false
@@ -28,7 +32,7 @@
 
 - name: set KUBERNETES VERSION in kubeadm config template
   set_fact:
-    KUBERNETES_VERSION: "1.25.0"
+    KUBERNETES_VERSION: "1.27.1"
 
 - name: render kubeadm-config.yaml
   become: false
@@ -60,9 +64,9 @@
     remote_src: yes
     owner: ubuntu
 
-- name: install Pod network
-  become: false
-  shell: kubectl apply -f https://raw.githubusercontent.com/flannel-io/flannel/master/Documentation/kube-flannel.yml
+# - name: install Pod network
+#   become: false
+#   shell: kubectl apply -f https://raw.githubusercontent.com/flannel-io/flannel/master/Documentation/kube-flannel.yml
 
 - name: copy admin.conf to local
   fetch:
