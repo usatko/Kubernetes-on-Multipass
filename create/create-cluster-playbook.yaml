@@ -45,10 +45,28 @@
   - name: refreshing inventory
     meta: refresh_inventory
 
+  - name: Ensure servers are present in known_hosts file
+    known_hosts:
+      name: "{{ hostvars[item].ansible_host }}"
+      state: present
+      key: "{{ lookup('pipe', 'ssh-keyscan {{ hostvars[item].ansible_host }}') }}"
+      hash_host: true
+    with_items: "{{ groups['all'] }}"
+  
+  - name: Pause for 30 seconds for ssh known_hosts
+    pause:
+      seconds: 30
+
+
 - name: initialize nodes
   hosts: control:worker
   become: true
   tasks:
+  - name: read k8s cluster VM configuration from file
+    include_vars:
+      file: vars.yaml
+      name: config
+
   - name: set KUBERNETES VERSION in kubeadm config template
     set_fact:
       KUBERNETES_VERSION: "1.27.1"
@@ -89,6 +107,9 @@
           shell: kubectl get nodes {{ inventory_hostname }}
           delegate_to: localhost
       rescue:
+        - name: ansible_failed_result
+          debug:
+            msg: "{{ ansible_failed_result }}"
         - name: Configure worker nodes if node isn't in the cluster
           include_tasks: join-cluster-tasks.yaml
 

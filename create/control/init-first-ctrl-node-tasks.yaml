@@ -7,18 +7,13 @@
 
 - name: set service account issuer URL fact
   set_fact:
-    SA_ISSUER_URL: config.apiServerConfigurations.saIssuerUrl
+    SA_ISSUER_URL: "{{ config.apiServerConfigurations.saIssuerUrl }}"
 
 - name: check for lb
   become: false
   shell: multipass ls | grep loadbalancer > /dev/null 2>&1; echo $?
   register: LB_EXISTS
   delegate_to: localhost
-
-- name: debug LB_EXISTS
-  debug:
-    msg:
-      - "{{ LB_EXISTS.stdout }}"
 
 - name: set control plane endpoint without loadbalancer
   set_fact:
