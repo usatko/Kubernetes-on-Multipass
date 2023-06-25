@@ -45,6 +45,10 @@
   - name: refreshing inventory
     meta: refresh_inventory
 
+  - name: remove host from known_hosts
+    shell: ssh-keygen -R "{{ hostvars[item].ansible_host }}"
+    with_items: "{{ groups['all'] }}"
+
   - name: Ensure servers are present in known_hosts file
     known_hosts:
       name: "{{ hostvars[item].ansible_host }}"
@@ -52,11 +56,6 @@
       key: "{{ lookup('pipe', 'ssh-keyscan {{ hostvars[item].ansible_host }}') }}"
       hash_host: true
     with_items: "{{ groups['all'] }}"
-  
-  - name: Pause for 30 seconds for ssh known_hosts
-    pause:
-      seconds: 30
-
 
 - name: initialize nodes
   hosts: control:worker
@@ -126,7 +125,7 @@
       kubernetes.core.helm:
         name: cilium
         chart_ref: cilium/cilium
-        chart_version: 1.13.3
+        chart_version: 1.13.4
         release_namespace: kube-system
         create_namespace: yes
         release_state: present
