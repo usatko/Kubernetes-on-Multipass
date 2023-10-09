@@ -44,12 +44,10 @@ Kubernetes on multipass ubuntu VMs using ansible
 ## Create a kubernetes cluster
 
 - How to create a kubernetes cluster
-    1. cd `/create/main`
-    1. run `ANSIBLE_STDOUT_CALLBACK=yaml ansible-playbook --inventory ../../inventories/ playbook.yaml --extra-vars "configFile=node-config.yaml"`
+    1. run `ansible-playbook create/playbook.yaml`
 
-- How to update a Highly Available kubernetes cluster
-    1. cd `/upgrade`
-    1. run `ANSIBLE_STDOUT_CALLBACK=yaml ansible-playbook --inventory ../inventories/ playbook.yaml`
+- How to upgrade a kubernetes cluster
+    1. run `ansible-playbook upgrade/playbook.yaml`
 
 - How to delete the cluster
     1. run `multipass stop --all` to stop all the multipass VMs

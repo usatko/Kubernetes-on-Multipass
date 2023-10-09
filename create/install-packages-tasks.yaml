@@ -12,6 +12,7 @@
     - gnupg-agent
     - software-properties-common
     - cgroup-tools
+    - python3-kubernetes
 
 - name: Add an apt signing key for Docker
   apt_key:
@@ -20,17 +21,14 @@
 
 - name: Add apt repository for stable version
   apt_repository:
-    repo: deb [arch=arm64] https://download.docker.com/linux/ubuntu focal stable
+    repo: deb [arch=arm64] https://download.docker.com/linux/ubuntu lunar stable
     state: present
 
 - name: Install containerd
   apt: 
-    name: "{{ packages }}"
+    name: "containerd.io=1.6.21-1"
     state: present
     update_cache: yes
-  vars:
-    packages:
-    - containerd.io
 
 - name: Add an apt signing key for Kubernetes
   apt_key:
