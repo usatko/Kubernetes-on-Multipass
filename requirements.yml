@@ -1,0 +1,4 @@
+collections:
+  # Install a collection from Ansible Galaxy.
+  - name: community.crypto
+    source: https://galaxy.ansible.com
