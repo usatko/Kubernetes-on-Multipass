@@ -2,3 +2,6 @@ collections:
   # Install a collection from Ansible Galaxy.
   - name: community.crypto
     source: https://galaxy.ansible.com
+  
+  - name: kubernetes.core
+    source: https://galaxy.ansible.com
