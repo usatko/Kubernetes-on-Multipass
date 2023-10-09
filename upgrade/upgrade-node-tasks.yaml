@@ -1,5 +1,6 @@
-- name: apt-get update
+- name: Update and upgrade apt packages
   apt:
+    upgrade: yes
     update_cache: yes
 
 - name: unhold kubeadm
@@ -77,9 +78,15 @@
   when: ansible_hostname != groups.control[0]
 
 - name: drain node
-  become: false
   delegate_to: localhost
-  shell: "kubectl drain {{ inventory_hostname }} --ignore-daemonsets"
+  become: false
+  kubernetes.core.k8s_drain:
+    state: drain
+    name: "{{ inventory_hostname }}"
+    delete_options:
+      ignore_daemonsets: true
+      # force: true
+      delete_emptydir_data: true
 
 - name: unhold kubelet & kubectl
   shell: apt-mark unhold kubelet kubectl
@@ -104,7 +111,8 @@
 
 - name: pause
   pause:
-    seconds: 10
+    seconds: 15
+  when: ansible_hostname == groups.control[0]
     
 - name: kubectl server version
   become: false
@@ -136,9 +144,11 @@
     state: restarted
 
 - name: uncordon node
-  become: false
   delegate_to: localhost
-  shell: "kubectl uncordon {{ inventory_hostname }}"
+  become: false
+  kubernetes.core.k8s_drain:
+    state: uncordon
+    name: "{{ inventory_hostname }}"
 
 - name: Remove useless packages from the cache
   apt:
