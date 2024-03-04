@@ -3,11 +3,19 @@ nodeConfigurations:
     nodeCount: 1
     spec: '-c 3 -m 4G -d 20G'
   - vmType: worker
+    nodeCount: 1
+    spec: '-c 3 -m 12G -d 20G'
+  - vmType: worker
+    nodeCount: 2
+    spec: '-c 8 -m 48G -d 20G --mount /mnt/data-sda/data:/data'
+  - vmType: worker
     nodeCount: 3
-    spec: '-c 3 -m 4G -d 20G'
+    spec: '-c 8 -m 48G -d 20G --mount /mnt//data-sdb/data:/data'
   # - vmType: loadbalancer
   #   nodeCount: 1
   #   spec: '-c 1 -m 512M -d 5G'
 
 apiServerConfigurations:
   saIssuerUrl: <service-account-issuer-url>
+
+
