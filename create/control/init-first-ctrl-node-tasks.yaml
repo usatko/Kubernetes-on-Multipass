@@ -27,7 +27,7 @@
 
 - name: set KUBERNETES VERSION in kubeadm config template
   set_fact:
-    KUBERNETES_VERSION: "1.27.1"
+    KUBERNETES_VERSION: "1.28.7"
 
 - name: render kubeadm-config.yaml
   become: false

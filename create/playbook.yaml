@@ -68,10 +68,15 @@
 
   - name: set KUBERNETES VERSION in kubeadm config template
     set_fact:
-      KUBERNETES_VERSION: "1.27.1"
+      KUBERNETES_VERSION: "1.28.7"
 
   - name: install packages
     include_tasks: install-packages-tasks.yaml
+    vars:
+      arch_mapping:  # Map ansible architecture {{ ansible_architecture }} names to Docker's architecture names
+        x86_64: amd64
+        aarch64: arm64
+
 
 - name: configure loadbalancer for control plane nodes
   hosts: loadbalancer
