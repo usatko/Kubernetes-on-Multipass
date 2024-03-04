@@ -8,10 +8,10 @@ apiVersion: kubeadm.k8s.io/v1beta3
 kind: ClusterConfiguration
 kubernetesVersion: "v{{ KUBERNETES_VERSION }}"
 controlPlaneEndpoint: "{{ CTRLPLN_ENDPOINT }}:6443"
-apiServer:
-  extraArgs:
-    service-account-issuer: "{{ SA_ISSUER_URL }}"
-    service-account-jwks-uri: "{{ SA_ISSUER_URL }}/openid/v1/jwks"
+# apiServer:
+#   extraArgs:
+#     service-account-issuer: "{{ SA_ISSUER_URL }}"
+#     service-account-jwks-uri: "{{ SA_ISSUER_URL }}/openid/v1/jwks"
 clusterName: "hub-cluster"
 networking:
   podSubnet: 10.244.0.0/16
