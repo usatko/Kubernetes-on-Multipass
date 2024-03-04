@@ -30,8 +30,8 @@
   shell: |
     export VMNAME="{{ clusterConfig.vmType }}-node-{{ item }}"
     export SPEC="{{ clusterConfig.spec }}"
-    if [[ -z $(multipass ls --format json | jq -c '.list[] | select(.name == env.VMNAME)') ]]; then
-      multipass launch lunar $SPEC --cloud-init {{ CLOUD_INIT_PATH }} --name $VMNAME > /dev/null 2>&1
+    if [ -z $(multipass ls --format json | jq -c '.list[] | select(.name == env.VMNAME)') ]; then
+      multipass launch jammy $SPEC --cloud-init {{ CLOUD_INIT_PATH }} --name $VMNAME > /dev/null 2>&1
       multipass info $VMNAME
     else
       echo "multipass vm $VMNAME already exists"
